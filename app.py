@@ -1,10 +1,22 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
 import os
 import random
+import logging
+
+# Configuração de logging para visualizar na implantação
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 # Configuração inicial do Flask
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0  # Opção para desenvolvimento. Pode ser removida em produção.
+
+# Adiciona registro de inicialização
+app.logger.setLevel(logging.INFO)
+app.logger.info("Aplicativo de Jokenpô iniciado!")
 
 # Constantes do jogo
 ITENS = ["pedra", "papel", "tesoura"]
@@ -50,6 +62,7 @@ def index():
     """
     Renderiza a página principal do jogo.
     """
+    app.logger.info("Página inicial acessada!")
     return render_template('index.html')
 
 
@@ -59,7 +72,10 @@ def play():
     Processa a jogada do Jokenpô recebida e retorna o resultado.
     """
     try:
+        app.logger.info("Requisição de jogada recebida")
         data = request.get_json()
+        app.logger.info(f"Dados da jogada: {data}")
+
         if not data or 'jogador' not in data:
             raise ValueError("Dados inválidos. O campo 'jogador' é obrigatório.")
 
@@ -101,6 +117,7 @@ def serve_sounds(filename):
     """
     Rota para servir arquivos de som localmente.
     """
+    app.logger.info(f"Solicitação de arquivo de som: {filename}")
     sound_folder = os.path.join(app.static_folder, 'sounds')
     return send_from_directory(sound_folder, filename)
 
@@ -111,6 +128,7 @@ def check_files():
     Rota de diagnóstico para verificar se todos os arquivos de som estão disponíveis.
     Útil para depuração no ambiente do Fly.io.
     """
+    app.logger.info("Verificação de arquivos de som iniciada")
     sound_files = [
         "background_music.mp3",
         "click.mp3",
@@ -127,11 +145,27 @@ def check_files():
 
     for sound in sound_files:
         file_path = os.path.join(sound_folder, sound)
-        status[sound] = os.path.exists(file_path)
+        file_exists = os.path.exists(file_path)
+        status[sound] = file_exists
+        app.logger.info(f"Arquivo {sound}: {'Encontrado' if file_exists else 'Não encontrado'}")
 
     return jsonify({
         "status": "ok",
         "files": status
+    })
+
+
+# Rota de diagnóstico para facilitar a depuração
+@app.route('/ping', methods=['GET'])
+def ping():
+    """
+    Rota simples para verificar se a aplicação está funcionando.
+    """
+    app.logger.info("Ping recebido - aplicação funcionando")
+    return jsonify({
+        "status": "ok",
+        "message": "Aplicação JoKenPô está rodando!",
+        "timestamp": os.environ.get("FLY_ALLOC_ID", "local-dev")
     })
 
 
