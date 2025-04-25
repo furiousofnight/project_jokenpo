@@ -5,7 +5,8 @@
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
     background: linear-gradient(135deg, #121124, #2c2c6c);
@@ -13,7 +14,8 @@ html, body {
     height: 100%;
     overflow-x: hidden;
     display: flex;
-    flex-direction: column; /* Para permitir que o rodapé fique no final */
+    flex-direction: column;
+    /* Para permitir que o rodapé fique no final */
 }
 
 .container {
@@ -53,8 +55,13 @@ html, body {
 }
 
 @keyframes glow {
-    0% { text-shadow: 0 2px 10px rgba(255, 0, 123, 0.3); }
-    100% { text-shadow: 0 4px 20px rgba(255, 0, 123, 0.7); }
+    0% {
+        text-shadow: 0 2px 10px rgba(255, 0, 123, 0.3);
+    }
+
+    100% {
+        text-shadow: 0 4px 20px rgba(255, 0, 123, 0.7);
+    }
 }
 
 /* Container Principal para o Jogo */
@@ -271,7 +278,8 @@ html, body {
 #stats-display {
     margin: 30px auto 20px;
     padding: 15px;
-    background: #4d4d4d; /* Cinza sólido */
+    background: #4d4d4d;
+    /* Cinza sólido */
     border-radius: 8px;
     border: 2px solid #ff6600;
     font-size: 1.1rem;
@@ -290,7 +298,8 @@ html, body {
     font-size: 1rem;
     font-weight: bold;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5);
-    margin-top: auto; /* Fixa o rodapé no final */
+    margin-top: auto;
+    /* Fixa o rodapé no final */
 }
 
 .site-footer a {
@@ -316,13 +325,27 @@ html, body {
 
 /* Animações */
 @keyframes popUp {
-    0% { opacity: 0; transform: scale(0.85); }
-    100% { opacity: 1; transform: scale(1); }
+    0% {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* Estilos para a animação de JoKenPo */
@@ -350,8 +373,13 @@ html, body {
 }
 
 @keyframes pulseBackground {
-    0% { background-color: rgba(0, 0, 0, 0.85); }
-    100% { background-color: rgba(41, 10, 89, 0.85); }
+    0% {
+        background-color: rgba(0, 0, 0, 0.85);
+    }
+
+    100% {
+        background-color: rgba(41, 10, 89, 0.85);
+    }
 }
 
 .symbol-container {
@@ -385,8 +413,13 @@ html, body {
 }
 
 @keyframes pulseGlow {
-    0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); }
-    100% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.9); }
+    0% {
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+    }
+
+    100% {
+        box-shadow: 0 0 35px rgba(255, 215, 0, 0.9);
+    }
 }
 
 .vs-text {
@@ -399,11 +432,19 @@ html, body {
 }
 
 @keyframes pulsateVS {
-    0% { opacity: 0.7; transform: scale(0.9); }
-    100% { opacity: 1; transform: scale(1.1); }
+    0% {
+        opacity: 0.7;
+        transform: scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
 }
 
-.player-choice, .computer-choice {
+.player-choice,
+.computer-choice {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -430,9 +471,17 @@ html, body {
 }
 
 @keyframes countdownPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .computer-symbol {
@@ -440,8 +489,13 @@ html, body {
 }
 
 @keyframes rotateSymbol {
-    0% { transform: rotate(-5deg); }
-    100% { transform: rotate(5deg); }
+    0% {
+        transform: rotate(-5deg);
+    }
+
+    100% {
+        transform: rotate(5deg);
+    }
 }
 
 /* Controle de música */
@@ -492,7 +546,8 @@ html, body {
         width: 90%;
     }
 
-    .game-score span, .game-score strong {
+    .game-score span,
+    .game-score strong {
         font-size: 1.2rem;
     }
 
@@ -645,7 +700,10 @@ html, body {
 
 /* Garantindo que a animação seja suave em dispositivos de baixo desempenho */
 @media (prefers-reduced-motion: reduce) {
-    .jokenpo-symbol, .vs-text, .countdown {
+
+    .jokenpo-symbol,
+    .vs-text,
+    .countdown {
         animation: none !important;
     }
 
@@ -657,9 +715,75 @@ html, body {
         animation: none !important;
     }
 
-    .music-btn, .music-btn:hover {
+    .music-btn,
+    .music-btn:hover {
         transition: none !important;
         animation: none !important;
         transform: none !important;
+    }
+}
+
+/* Mensagem rápida animada */
+#quick-result {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 6rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 50px rgba(255, 255, 255, 0.5);
+    opacity: 0.9;
+    /* 90% de transparência */
+    z-index: 1000;
+    pointer-events: none;
+    animation: bounceInOut 3s ease-in-out;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+}
+
+/* Estilo único para cada mensagem */
+#quick-result.win {
+    color: #00ff00;
+    /* Verde brilhante */
+    text-shadow: 0 0 30px #00ff00, 0 0 60px #00ff00;
+}
+
+#quick-result.lose {
+    color: #ff0000;
+    /* Vermelho brilhante */
+    text-shadow: 0 0 30px #ff0000, 0 0 60px #ff0000;
+}
+
+#quick-result.draw {
+    color: #ffff00;
+    /* Amarelo brilhante */
+    text-shadow: 0 0 30px #ffff00, 0 0 60px #ffff00;
+}
+
+/* Animação divertida */
+@keyframes bounceInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -60%) scale(0.8);
+    }
+
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -40%) scale(0.9);
     }
 }

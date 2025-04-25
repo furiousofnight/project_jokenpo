@@ -220,6 +220,8 @@ function updateResultDisplay(resultado, jogadaComputador) {
     } else if (resultado === "EMPATE!") {
         playGameSound(drawSound);
     }
+
+    showQuickResultMessage(resultado); // Exibe a mensagem rápida
 }
 
 /**
@@ -473,6 +475,34 @@ async function sendChoiceToServer(jogadorChoice) {
         resultDisplay.innerHTML = `<span class="error">Erro: ${error.message}</span>`;
         isWaiting = false;
     }
+}
+
+/**
+ * Exibe uma mensagem rápida animada com base no resultado.
+ * @param {string} resultado - Resultado da rodada ("O JOGADOR GANHOU!", "O COMPUTADOR GANHOU!", "EMPATE!")
+ */
+function showQuickResultMessage(resultado) {
+    const quickResult = document.getElementById('quick-result');
+    if (!quickResult) return;
+
+    // Define o texto, cor e classe com base no resultado
+    if (resultado.includes("O JOGADOR GANHOU")) {
+        quickResult.textContent = "WIN";
+        quickResult.className = "win"; // Aplica o estilo "win"
+    } else if (resultado.includes("O COMPUTADOR GANHOU")) {
+        quickResult.textContent = "LOSE";
+        quickResult.className = "lose"; // Aplica o estilo "lose"
+    } else if (resultado === "EMPATE!") {
+        quickResult.textContent = "DRAW";
+        quickResult.className = "draw"; // Aplica o estilo "draw"
+    }
+
+    // Exibe a mensagem e remove após a animação
+    quickResult.style.display = "block";
+    setTimeout(() => {
+        quickResult.style.display = "none";
+        quickResult.className = ""; // Remove a classe para evitar conflitos
+    }, 3000); // Sincronizado com os 3 segundos
 }
 
 // Mapeia as jogadas com os textos correspondentes
