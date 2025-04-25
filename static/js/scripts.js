@@ -326,6 +326,12 @@ function checkForGameEnd() {
             // Atualiza o conteúdo da mensagem final
             document.getElementById('final-result-text').textContent = finalText;
 
+            // Atualiza a contagem de empates no final do jogo
+            const totalEmpatesElement = document.getElementById('total-empates');
+            if (totalEmpatesElement) {
+                totalEmpatesElement.textContent = placar.empates; // Exibe o número correto de empates
+            }
+
             // Exibe a mensagem final
             finalMessageElement.style.display = 'flex';
 
