@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JOKENPÔ - Pedra, Papel e Tesoura by FuriousOfNight">
+    <title>FURIOUSOFNIGHT | JOKENPÔ</title>
+    <link rel="stylesheet" href="/static/css/new_styles.css">
+    <link rel="icon" href="/static/favicon.ico">
+</head>
+
+<body>
+    <!-- Cabeçalho -->
+    <header class="main-header">
+        <div class="container">
+            <h1>FURIOUSOFNIGHT</h1>
+            <h2>JOKENPÔ</h2>
+        </div>
+    </header>
+
+    <!-- Container Principal do Jogo -->
+    <main class="game-container">
+        <!-- Instruções -->
+        <section class="instructions">
+            <p>Escolha sua jogada clicando em um dos botões abaixo. O objetivo é vencer o computador!</p>
+        </section>
+
+        <!-- Placar -->
+        <section class="game-score">
+            <h3>Placar</h3>
+            <div id="score-display" class="score">
+                <span>Jogador: <strong id="player-score">0</strong></span>
+                <span>Computador: <strong id="computer-score">0</strong></span>
+                <span>Tentativas restantes: <strong id="remaining-attempts">10</strong></span>
+            </div>
+        </section>
+
+        <!-- Seção de Jogadas -->
+        <section class="game-stage">
+            <h3>Escolha a sua jogada:</h3>
+            <div class="choices">
+                <!-- Botões com imagens -->
+                <button class="btn-choice" data-choice="0" aria-label="Escolha Pedra">
+                    <img src="/static/images/rock.png" alt="Ícone de Pedra">
+                    <span class="btn-label">Pedra</span>
+                </button>
+                <button class="btn-choice" data-choice="1" aria-label="Escolha Papel">
+                    <img src="/static/images/paper.png" alt="Ícone de Papel">
+                    <span class="btn-label">Papel</span>
+                </button>
+                <button class="btn-choice" data-choice="2" aria-label="Escolha Tesoura">
+                    <img src="/static/images/scissors.png" alt="Ícone de Tesoura">
+                    <span class="btn-label">Tesoura</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Seção de Resultados -->
+        <section class="game-results">
+            <h3>Resultado:</h3>
+            <div id="result" class="result-display">
+                Faça sua escolha para ver o resultado!
+            </div>
+        </section>
+
+        <!-- Histórico de Jogadas -->
+        <section class="history">
+            <h3>Histórico de Jogadas:</h3>
+            <ul id="history-list" aria-live="polite">
+                <!-- Será preenchido quando houver resultados -->
+            </ul>
+        </section>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <p>Desenvolvido por <strong>FURIOUSOFNIGHT</strong>. Confira outras criações no
+                <a href="https://www.tiktok.com/@furiousofnightgames" target="_blank" rel="noopener noreferrer">Tiktok</a>.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Script principal -->
+    <script src="/static/js/scripts.js"></script>
+</body>
+
+</html>

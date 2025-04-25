@@ -1,0 +1,16 @@
+   ├── app.py
+   ├── static/
+   │   ├── css/
+   │   │   └── styles.css
+   │   ├── images/
+   │   │   └── example.png
+   │   ├── sounds/
+   │   │   ├── click.mp3
+   │   │   ├── win.mp3
+   │   │   ├── lose.mp3
+   │   │   └── draw.mp3
+   ├── templates/
+   │   └── index.html
+   ├── Dockerfile
+   ├── requirements.txt
+   └── fly.toml
