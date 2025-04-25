@@ -1,114 +1,106 @@
-# 🕹️ JOKENPÔ Mágico - Pedra, Papel ou Tesoura!
+# 🎮 JOKENPÔ Mágico - Pedra, Papel e Tesoura
 
-Este é um super jogo interativo de Jokenpô desenvolvido com carinho pelo Furious usando **Python**, **Flask**, **HTML**, **CSS** e **JavaScript**! Um projeto de aprendizado que virou uma experiência divertida! 🌟
-
----
-
-## 🌟 Funcionalidades:
-
-- Interface responsiva, linda e fluida 📊
-- Jogabilidade intuitiva com três opções clássicas: pedra, papel e tesoura
-- Sons para vitórias, derrotas e empates
-- Placar de melhor de 3 rodadas com histórico de partidas
-- Animações e efeitos visuais para uma experiência divertida
-- Totalmente hospedado no **Fly.io** com Docker
+Este é um projeto web interativo do clássico jogo **Jokenpô** (Pedra, Papel e Tesoura), desenvolvido com Python, Flask, HTML, CSS e JavaScript. Com design responsivo, animações e elementos visuais atrativos, essa aplicação visa entreter e ensinar conceitos de lógica, condições e manipulação de dados.
 
 ---
 
-## 🏙️ Tecnologias Utilizadas:
+## 🚀 Funcionalidades
 
-### Backend
-- Python 3.13
-- Flask 3.1.0
-- Gunicorn (para produção)
-
-### Frontend
-- HTML5
-- CSS3 (com gradientes, sombras e animações)
-- JavaScript
-
-### DevOps & Deploy
-- Docker
-- Fly.io
-- Waitress (local)
+- 🎨 Interface responsiva e moderna
+- 🧠 IA simples para jogar contra o computador
+- 🧾 Registro de histórico de partidas
+- 🥇 Sistema de placar acumulado
+- 🔁 Reinício rápido de jogo
+- 🔊 Sons dinâmicos para ações (opcional)
+- 🌎 Hospedagem pronta para o Fly.io
 
 ---
 
-## 🛋️ Como rodar localmente
+## 📁 Estrutura do Projeto
 
-```bash
-# Clone o repositório
-$ git clone https://github.com/seu-usuario/seu-repositorio.git
-$ cd seu-repositorio
-
-# Crie o ambiente virtual e ative
-$ python -m venv venv
-$ source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Instale as dependências
-$ pip install -r requirements.txt
-
-# Rode localmente
-$ python app.py
-```
-
----
-
-## 🚀 Rodar com Docker
-```bash
-# Build da imagem
-$ docker build -t jokenpo-app .
-
-# Run com porta 8080
-$ docker run -p 8080:8080 jokenpo-app
-```
-Acesse via navegador em: `http://localhost:8080`
-
----
-
-## 🌐 Deploy no Fly.io
-```bash
-# Instale o CLI do Fly.io
-$ flyctl launch
-# Configure nome, região e porta (8080)
-
-# Deploy
-$ flyctl deploy
-```
-Visualize o app em: `https://<nome-do-app>.fly.dev`
-
----
-
-## 🌟 Estrutura do Projeto
 ```
 Project_JOKENPO/
-├── app.py
-├── static/
-│   ├── css/styles.css
-│   ├── js/script.js
-│   ├── images/
-│   │   ├── pedra.png
-│   │   ├── papel.png
-│   │   └── tesoura.png
-│   └── sounds/
-│       ├── win.mp3
-│       ├── lose.mp3
-│       └── draw.mp3
+├── app.py                      # Servidor Flask principal
+├── requirements.txt           # Dependências do projeto
+├── Dockerfile                 # Containerização do app
+├── fly.toml                   # Configuração para deploy no Fly.io
 ├── templates/
-│   └── index.html
-├── Dockerfile
-├── fly.toml
-└── requirements.txt
+│   └── index.html             # Interface principal (HTML)
+├── static/
+│   ├── css/
+│   │   └── styles.css         # Estilização visual do jogo
+│   ├── js/
+│   │   └── script.js          # Lógica interativa (JS)
+│   └── images/                # Imagens dos botões (pedra, papel, tesoura)
+│       ├── rock.png
+│       ├── paper.png
+│       └── scissors.png
 ```
 
 ---
 
-## 🌈 Créditos & Contato
-Criado por: **FURIOUSOFNIGHT**   
-TikTok: [@furiousofnight](https://tiktok.com/@furiousofnight)
+## ⚙️ Tecnologias Utilizadas
+
+- **Python 3.13**
+- **Flask 3.1.0**
+- **HTML5 / CSS3 / JavaScript**
+- **Docker**
+- **Gunicorn**
+- **Fly.io** para deploy
 
 ---
 
-## 📄 Licença
-MIT License. Use, melhore e compartilhe ✨
+## 💻 Como Executar Localmente
+
+### Clonando o repositório
+```bash
+git clone https://github.com/SEU_USUARIO/Project_JOKENPO.git
+cd Project_JOKENPO
+```
+
+### Com Python (recomendado para desenvolvimento)
+```bash
+python -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
+
+### Com Docker (pronto para produção)
+```bash
+docker build -t jokenpo-app .
+docker run -p 8080:8080 jokenpo-app
+```
+Acesse em: [http://localhost:8080](http://localhost:8080)
+
+### Com Fly.io (deploy online)
+```bash
+flyctl launch       # Configure o app
+flyctl deploy       # Publica na nuvem
+```
+
+---
+
+## 🙌 Autor e Créditos
+
+Projeto desenvolvido por **FuriousOfNight** 🌙
+
+🎥 Veja mais no meu TikTok: [tiktok.com/@furiousofnight](https://www.tiktok.com/@furiousofnight)
+
+
+---
+
+## 📜 Licença
+
+Este projeto está licenciado sob a Licença MIT. Sinta-se à vontade para estudar, modificar e compartilhar.
+
+---
+
+## 🌟 Screenshot
+
+![Preview do Jogo](static/images/preview.png)
+
+---
+
+**Divirta-se jogando e aprendendo!** ✊🖐✌️
 
