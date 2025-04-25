@@ -11,7 +11,7 @@ ITENS = ["pedra", "papel", "tesoura"]
 REGRAS = {
     0: 1,  # Pedra → Papel (papel vence pedra)
     1: 2,  # Papel → Tesoura (tesoura vence papel)
-    2: 0   # Tesoura → Pedra (pedra vence tesoura)
+    2: 0  # Tesoura → Pedra (pedra vence tesoura)
 }
 
 
@@ -38,8 +38,8 @@ def determinar_resultado(jogador, computador):
     if jogador == computador:
         return "EMPATE!"
     elif (computador == 0 and jogador == 2) or \
-         (computador == 1 and jogador == 0) or \
-         (computador == 2 and jogador == 1):
+            (computador == 1 and jogador == 0) or \
+            (computador == 2 and jogador == 1):
         return "O COMPUTADOR GANHOU!"
     else:
         return "O JOGADOR GANHOU!"
@@ -80,7 +80,8 @@ def play():
         computador = jogada_computador(ultimo_jogador)
         resultado = determinar_resultado(jogador, computador)
 
-        app.logger.info(f"Jogador escolheu: {ITENS[jogador]}, Computador escolheu: {ITENS[computador]}. Resultado: {resultado}")
+        app.logger.info(
+            f"Jogador escolheu: {ITENS[jogador]}, Computador escolheu: {ITENS[computador]}. Resultado: {resultado}")
 
         return jsonify({
             "jogada_computador": ITENS[computador],
@@ -102,6 +103,36 @@ def serve_sounds(filename):
     """
     sound_folder = os.path.join(app.static_folder, 'sounds')
     return send_from_directory(sound_folder, filename)
+
+
+@app.route('/check_files', methods=['GET'])
+def check_files():
+    """
+    Rota de diagnóstico para verificar se todos os arquivos de som estão disponíveis.
+    Útil para depuração no ambiente do Fly.io.
+    """
+    sound_files = [
+        "background_music.mp3",
+        "click.mp3",
+        "win.mp3",
+        "lose.mp3",
+        "draw.mp3",
+        "final_win.mp3",
+        "final_lose.mp3",
+        "final_draw.mp3"
+    ]
+
+    sound_folder = os.path.join(app.static_folder, 'sounds')
+    status = {}
+
+    for sound in sound_files:
+        file_path = os.path.join(sound_folder, sound)
+        status[sound] = os.path.exists(file_path)
+
+    return jsonify({
+        "status": "ok",
+        "files": status
+    })
 
 
 if __name__ == "__main__":
