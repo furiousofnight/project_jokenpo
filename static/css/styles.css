@@ -559,11 +559,15 @@ html, body {
     }
 
     .main-header h1 {
-        font-size: 2.8rem;
+        font-size: 2.2rem;
+        padding: 0 5px;
+        letter-spacing: -0.5px;
+        word-break: keep-all;
+        overflow-wrap: break-word;
     }
 
     .main-header h2 {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
     }
 
     .btn-choice {
@@ -590,6 +594,22 @@ html, body {
         font-size: 16px;
         bottom: 15px;
         right: 15px;
+    }
+}
+
+/* Para dispositivos extremamente pequenos */
+@media (max-width: 360px) {
+    .main-header h1 {
+        font-size: 1.9rem;
+        letter-spacing: -1px;
+    }
+
+    .main-header h2 {
+        font-size: 1.4rem;
+    }
+
+    .main-header {
+        padding: 15px 5px;
     }
 }
 
