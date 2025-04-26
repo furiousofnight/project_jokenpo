@@ -11,8 +11,7 @@ kill_timeout = "5s"
 [experimental]
   auto_rollback = true
 
-[build]
-  builtin = "python"
+# [build] # Removido - Fly.io usará o Dockerfile automaticamente se presente na raiz
 
 [env]
   PORT = "8080"
@@ -29,10 +28,15 @@ kill_timeout = "5s"
     port = 443
     handlers = ["tls", "http"]
 
-  [[services.tcp_checks]]
+  # Health check HTTP mais robusto
+  [[services.http_checks]]
     interval = "10s"
     timeout = "2s"
     grace_period = "5s"
+    method = "get"
+    path = "/ping" # Aponta para a rota de health check da aplicação
+    protocol = "http" # Verifica internamente via HTTP
+    tls_skip_verify = true # Necessário para checks internos na rede Fly
 
 [[vm]]
   memory = "1gb"

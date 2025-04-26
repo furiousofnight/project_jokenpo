@@ -1,4 +1,4 @@
-// Seletores do DOM
+// ================== Seletores do DOM ==================
 const btnChoices = document.querySelectorAll('.btn-choice');
 const resultDisplay = document.getElementById('result');
 const historyList = document.getElementById('history-list');
@@ -7,388 +7,374 @@ const playerScoreDisplay = document.getElementById('player-score');
 const computerScoreDisplay = document.getElementById('computer-score');
 const attemptsDisplay = document.getElementById('remaining-attempts');
 const finalMessageElement = document.getElementById('final-message');
-
-// Música de fundo
+const quickResultElement = document.getElementById('quick-result');
+const statsDisplayElement = document.getElementById('stats-display');
+const playAgainButton = document.getElementById('play-again');
+const finalResultTextElement = document.getElementById('final-result-text');
+const totalEmpatesElement = document.getElementById('total-empates');
+const loadingOverlay = document.getElementById('loading-overlay');
+const offlineMessageElement = document.getElementById('offline-message');
+const feedbackMessage = document.getElementById('feedback-message');
+// ================== Música de Fundo ==================
 const backgroundMusic = document.getElementById('background-music');
 const toggleMusicBtn = document.getElementById('toggle-music');
 let isMusicPlaying = false;
-
-// Adicione o container da animação
-const animationContainer = document.createElement('div');
-animationContainer.id = 'jokenpo-animation';
-document.body.appendChild(animationContainer);
-
-// Variáveis globais
-let ultimoJogador = null; // Última jogada para passar ao backend
-const HISTORY_LIMIT = 10; // Máximo de jogadas no histórico
-let placar = { jogador: 0, computador: 0, empates: 0 }; // Placar
-let tentativasRestantes = 10; // Número fixo de rodadas
-let isWaiting = false; // Controle para evitar múltiplos cliques enquanto processa
-
-// Definir tempos entre a interface do jogo
-const JOGADA_DELAY = 3000; // 3 segundos para permitir interação entre jogadas
-const FIM_JOGO_DELAY = 500; // 0,5 segundo para exibir a mensagem de fim do jogo rapidamente
-
-// Sons (adicione arquivos no caminho correto)
-const clickSound = new Audio('/static/sounds/click.mp3');
-const winSound = new Audio('/static/sounds/win.mp3');
-const loseSound = new Audio('/static/sounds/lose.mp3');
-const drawSound = new Audio('/static/sounds/draw.mp3');
-const finalWinSound = new Audio('/static/sounds/final_win.mp3');
-const finalLoseSound = new Audio('/static/sounds/final_lose.mp3');
-const finalDrawSound = new Audio('/static/sounds/final_draw.mp3');
-
-// Estatísticas de armazenamento local (somente fim de jogo)
+// ================== Container da Animação ==================
+let animationContainer = document.getElementById('jokenpo-animation');
+if (!animationContainer) {
+    animationContainer = document.createElement('div');
+    animationContainer.id = 'jokenpo-animation';
+    document.body.appendChild(animationContainer);
+}
+// ================== Constantes ==================
+const HISTORY_LIMIT = 10;
+const TENTATIVAS_INICIAIS = 10;
+const VOLUME_MUSICA_NORMAL = 0.4;
+const VOLUME_MUSICA_REDUZIDO = 0.1;
+const DELAY_RESTAURAR_VOLUME = 1500;
+const DELAY_ANIMACAO_RESULTADO = 800;
+const DELAY_CHECK_FIM_JOGO = 500;
+const DELAY_MENSAGEM_RAPIDA = 3000;
+const OFFLINE_MESSAGE = "Você está offline. Algumas funcionalidades podem não estar disponíveis.";
+// Constantes para resultados
+const RESULTADO_JOGADOR_GANHOU = "O JOGADOR GANHOU!";
+const RESULTADO_COMPUTADOR_GANHOU = "O COMPUTADOR GANHOU!";
+const RESULTADO_EMPATE = "EMPATE!";
+// Mapeamentos
+const ITENS_JOGO = ['Pedra', 'Papel', 'Tesoura'];
+const JOGADA_PARA_INDICE = {
+    "pedra": 0,
+    "papel": 1,
+    "tesoura": 2
+};
+const SIMBOLOS_JOGO = ["👊", "✋", "✌️"];
+// Estados do Jogo
+const GameState = {
+    PLAYING: 'playing',
+    WAITING: 'waiting',
+    FINISHED: 'finished'
+};
+// ================== Variáveis de Estado ==================
+let ultimoJogador = null;
+let placar = { jogador: 0, computador: 0, empates: 0 };
+let tentativasRestantes = TENTATIVAS_INICIAIS;
+let isWaiting = false;
+let currentGameState = GameState.PLAYING;
+// Estatísticas localStorage
 let storageStats = {
     vitorias: parseInt(localStorage.getItem('vitorias')) || 0,
     derrotas: parseInt(localStorage.getItem('derrotas')) || 0,
     empates: parseInt(localStorage.getItem('empates')) || 0
 };
-
-/**
- * Inicializa a música de fundo e configura o estado inicial
- */
+// ================== Sons ==================
+const sounds = {
+    click: new Audio('/static/sounds/click.mp3'),
+    win: new Audio('/static/sounds/win.mp3'),
+    lose: new Audio('/static/sounds/lose.mp3'),
+    draw: new Audio('/static/sounds/draw.mp3'),
+    finalWin: new Audio('/static/sounds/final_win.mp3'),
+    finalLose: new Audio('/static/sounds/final_lose.mp3'),
+    finalDraw: new Audio('/static/sounds/final_draw.mp3')
+};
+// ================== Funções de Utilidade ==================
+function showLoadingOverlay(show) {
+    loadingOverlay.hidden = !show;
+}
+function showFeedback(message, type = 'error') {
+    feedbackMessage.textContent = message;
+    feedbackMessage.className = `feedback-message ${type}`;
+    feedbackMessage.hidden = false;
+    setTimeout(() => {
+        feedbackMessage.hidden = true;
+    }, 3000);
+}
+function updateGameState(newState) {
+    currentGameState = newState;
+    document.body.dataset.gameState = newState;
+}
+// ================== Funções de Música e Som ==================
 function initBackgroundMusic() {
-    // Verifica se o usuário já definiu uma preferência de música
     const musicState = localStorage.getItem('musicEnabled');
+    backgroundMusic.volume = VOLUME_MUSICA_NORMAL;
+    const musicIcon = toggleMusicBtn.querySelector('.music-icon');
 
-    // Configura o volume da música
-    backgroundMusic.volume = 0.4; // 40% do volume
-
-    // Configura o botão e estado baseado na preferência salva
     if (musicState === 'false') {
-        toggleMusicBtn.querySelector('.music-icon').textContent = '🔈';
+        musicIcon.textContent = '🔈';
         toggleMusicBtn.classList.add('muted');
         isMusicPlaying = false;
     } else {
-        // Tenta iniciar a música - navegadores modernos exigem interação do usuário
-        toggleMusicBtn.querySelector('.music-icon').textContent = '🔊';
+        musicIcon.textContent = '🔊';
         isMusicPlaying = true;
-
-        // Adiciona o evento para tocar música no primeiro clique
-        document.addEventListener('click', function startMusicOnFirstInteraction() {
-            backgroundMusic.play().catch(err => console.log('Esperando interação para tocar música'));
-            document.removeEventListener('click', startMusicOnFirstInteraction);
-        }, { once: true });
+        const startMusicHandler = () => {
+            backgroundMusic.play().catch(err => console.warn('Interação do usuário necessária para tocar música:', err));
+            document.removeEventListener('click', startMusicHandler);
+        };
+        document.addEventListener('click', startMusicHandler, { once: true });
     }
 
-    // Adiciona evento para o botão de ligar/desligar música
     toggleMusicBtn.addEventListener('click', toggleBackgroundMusic);
 }
-
-/**
- * Alterna o estado da música (ligado/desligado)
- */
 function toggleBackgroundMusic() {
+    const musicIcon = toggleMusicBtn.querySelector('.music-icon');
     if (isMusicPlaying) {
         backgroundMusic.pause();
-        toggleMusicBtn.querySelector('.music-icon').textContent = '🔈';
+        musicIcon.textContent = '🔈';
         toggleMusicBtn.classList.add('muted');
-        isMusicPlaying = false;
         localStorage.setItem('musicEnabled', 'false');
     } else {
-        backgroundMusic.play().catch(err => console.log('Falha ao tocar música:', err));
-        toggleMusicBtn.querySelector('.music-icon').textContent = '🔊';
+        backgroundMusic.play().catch(err => console.error('Falha ao tocar música:', err));
+        musicIcon.textContent = '🔊';
         toggleMusicBtn.classList.remove('muted');
-        isMusicPlaying = true;
         localStorage.setItem('musicEnabled', 'true');
     }
+    isMusicPlaying = !isMusicPlaying;
 }
-
-/**
- * Ajusta o volume da música durante efeitos sonoros
- * @param {HTMLAudioElement} sound - Som a ser tocado
- */
 function playGameSound(sound) {
-    // Salva o volume atual da música
+    if (!sound) return;
     const currentMusicVolume = backgroundMusic.volume;
-
-    // Reduz o volume da música temporariamente
     if (isMusicPlaying) {
-        backgroundMusic.volume = 0.1; // 10% do volume
+        backgroundMusic.volume = VOLUME_MUSICA_REDUZIDO;
     }
-
-    // Toca o som
-    sound.play();
-
-    // Restaura o volume da música após um curto período
+    sound.currentTime = 0;
+    sound.play().catch(err => console.error("Erro ao tocar som:", err));
     setTimeout(() => {
         if (isMusicPlaying) {
             backgroundMusic.volume = currentMusicVolume;
         }
-    }, 1500);
+    }, DELAY_RESTAURAR_VOLUME);
 }
-
-/**
- * Atualiza o localStorage com estatísticas de fim de jogo.
- * @param {string} statusFinal - "vitoria", "derrota" ou "empate".
- */
+// ================== Funções de Atualização do Estado do Jogo ==================
 function updateLocalStorage(statusFinal) {
-    if (statusFinal === "vitoria") {
-        storageStats.vitorias += 1;
-        localStorage.setItem('vitorias', storageStats.vitorias);
-    } else if (statusFinal === "derrota") {
-        storageStats.derrotas += 1;
-        localStorage.setItem('derrotas', storageStats.derrotas);
-    } else if (statusFinal === "empate") {
-        storageStats.empates += 1;
-        localStorage.setItem('empates', storageStats.empates);
+    switch (statusFinal) {
+        case "vitoria":
+            storageStats.vitorias++;
+            localStorage.setItem('vitorias', storageStats.vitorias);
+            break;
+        case "derrota":
+            storageStats.derrotas++;
+            localStorage.setItem('derrotas', storageStats.derrotas);
+            break;
+        case "empate":
+            storageStats.empates++;
+            localStorage.setItem('empates', storageStats.empates);
+            break;
     }
+    displayTotalStats();
 }
-
-/**
- * Exibe as estatísticas gerais salvas no localStorage.
- */
 function displayTotalStats() {
-    const statsDisplay = document.getElementById('stats-display');
-    if (statsDisplay) {
-        statsDisplay.innerHTML = `
+    if (statsDisplayElement) {
+        statsDisplayElement.innerHTML = `
             <p><strong>Estatísticas Gerais:</strong></p>
-            <p>Vitórias do Jogador: ${storageStats.vitorias}</p>
-            <p>Derrotas para o Computador: ${storageStats.derrotas}</p>
+            <p>Vitórias: ${storageStats.vitorias}</p>
+            <p>Derrotas: ${storageStats.derrotas}</p>
             <p>Empates: ${storageStats.empates}</p>
         `;
     }
 }
-
-// Adiciona as estatísticas na interface ao carregar a página
-document.addEventListener('DOMContentLoaded', () => {
-    displayTotalStats();
-    initBackgroundMusic(); // Inicializa a música
-
-    // Garante que a mensagem final esteja oculta no início
-    if (finalMessageElement) {
-        finalMessageElement.style.display = 'none';
+function setLoadingState(isLoading) {
+    isWaiting = isLoading;
+    showLoadingOverlay(isLoading);
+    btnChoices.forEach(button => {
+        button.disabled = isLoading;
+        button.classList.toggle('loading', isLoading);
+    });
+    if (isLoading) {
+        resultDisplay.innerHTML = '<span class="loading-text">Processando...</span>';
+        resultDisplay.classList.add('loading');
+    } else {
+        resultDisplay.classList.remove('loading');
     }
-});
-
-// Função inicializadora do jogo
+}
+function displayTemporaryError(message) {
+    resultDisplay.innerHTML = `<span class="error">Erro: ${message}</span>`;
+    resultDisplay.classList.add('error');
+    setTimeout(() => {
+        if (resultDisplay.classList.contains('error')) {
+            resultDisplay.innerHTML = "Tente novamente!";
+            resultDisplay.classList.remove('error');
+        }
+    }, 4000);
+}
 function initializeGame() {
-    // Reseta placares e variáveis
     placar = { jogador: 0, computador: 0, empates: 0 };
-    tentativasRestantes = 10;
-    isWaiting = false;
+    tentativasRestantes = TENTATIVAS_INICIAIS;
+    ultimoJogador = null;
+    updateGameState(GameState.PLAYING);
+    setLoadingState(false);
 
-    // Atualização inicial da UI
-    playerScoreDisplay.textContent = 0;
-    computerScoreDisplay.textContent = 0;
+    playerScoreDisplay.textContent = placar.jogador;
+    computerScoreDisplay.textContent = placar.computador;
     attemptsDisplay.textContent = tentativasRestantes;
     historyList.innerHTML = '';
-    resultDisplay.innerHTML = "Faça sua jogada!";
-    resultDisplay.className = ''; // Remove possíveis classes adicionais
+    resultDisplay.textContent = "Faça sua jogada!";
+    resultDisplay.className = 'result-display';
 
-    // Oculta a mensagem final se estiver visível
     if (finalMessageElement) {
         finalMessageElement.style.display = 'none';
     }
 
-    // Reativa os botões de escolha
     btnChoices.forEach(button => {
         button.disabled = false;
+        button.classList.remove('clicked', 'loading');
     });
 
-    // Atualiza as estatísticas gerais salvas no localStorage
     displayTotalStats();
 }
-
-// Carrega o jogo ao iniciar
-initializeGame();
-
-/**
- * Atualiza o resultado da rodada no display.
- * @param {string} resultado - Resultado da rodada.
- * @param {string} jogadaComputador - Jogada realizada pelo computador.
- */
+// ================== Funções de Interface do Jogo ==================
 function updateResultDisplay(resultado, jogadaComputador) {
     const messagesByResult = {
-        "O JOGADOR GANHOU!": "Você foi incrível! Vitória brilhante! 🌟",
-        "O COMPUTADOR GANHOU!": "Oh não! Você perdeu essa batalha contra o computador. 🤖",
-        "EMPATE!": "Foi um empate! Equilíbrio total! 😯"
+        [RESULTADO_JOGADOR_GANHOU]: "Você foi incrível! Vitória brilhante! 🌟",
+        [RESULTADO_COMPUTADOR_GANHOU]: "Oh não! O computador venceu essa. 🤖",
+        [RESULTADO_EMPATE]: "Foi um empate! Equilíbrio total! 😯"
     };
-
+    const jogadaComputadorDisplay = jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1);
     resultDisplay.innerHTML = `
         <div class="animated-message">
-            <p>O computador escolheu: <strong>${jogadaComputador}</strong></p>
+            <p>Computador escolheu: <strong>${jogadaComputadorDisplay}</strong></p>
             <p>${messagesByResult[resultado] || resultado}</p>
         </div>
     `;
-
-    if (resultado.includes("O JOGADOR GANHOU")) {
-        playGameSound(winSound);
-    } else if (resultado.includes("O COMPUTADOR GANHOU")) {
-        playGameSound(loseSound);
-    } else if (resultado === "EMPATE!") {
-        playGameSound(drawSound);
+    resultDisplay.classList.remove('loading', 'error');
+    switch (resultado) {
+        case RESULTADO_JOGADOR_GANHOU:
+            playGameSound(sounds.win);
+            break;
+        case RESULTADO_COMPUTADOR_GANHOU:
+            playGameSound(sounds.lose);
+            break;
+        case RESULTADO_EMPATE:
+            playGameSound(sounds.draw);
+            break;
     }
 
-    showQuickResultMessage(resultado); // Exibe a mensagem rápida
+    showQuickResultMessage(resultado);
 }
-
-/**
- * Registra jogadas no histórico com limite de exibição.
- * @param {string} resultado - Resultado da jogada.
- * @param {string} jogadaJogador - Jogada do jogador.
- * @param {string} jogadaComputador - Jogada do computador.
- */
 function addToHistory(resultado, jogadaJogador, jogadaComputador) {
     const li = document.createElement('li');
-    li.innerHTML = `
-        <span>Jogador: <strong>${jogadaJogador}</strong></span>
-        <span>Computador: <strong>${jogadaComputador}</strong></span>
-        <span>Resultado: <strong>${resultado}</strong></span>
-    `;
-    historyList.prepend(li);
+    let resultadoClasse = '';
 
-    // Remove jogadas antigas do histórico se exceder o limite
-    if (historyList.children.length > HISTORY_LIMIT) {
+    if (resultado === RESULTADO_JOGADOR_GANHOU) {
+        resultadoClasse = 'history-win';
+    } else if (resultado === RESULTADO_COMPUTADOR_GANHOU) {
+        resultadoClasse = 'history-lose';
+    } else {
+        resultadoClasse = 'history-draw';
+    }
+
+    li.classList.add(resultadoClasse);
+    const jogadaJogadorDisplay = jogadaJogador.charAt(0).toUpperCase() + jogadaJogador.slice(1);
+    const jogadaComputadorDisplay = jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1);
+
+    li.innerHTML = `
+        <span>Jogador: <strong>${jogadaJogadorDisplay}</strong></span>
+        <span>Computador: <strong>${jogadaComputadorDisplay}</strong></span>
+        <span>Resultado: <strong class="result-text">${resultado}</strong></span>
+    `;
+
+    historyList.prepend(li);
+    while (historyList.children.length > HISTORY_LIMIT) {
         historyList.removeChild(historyList.lastChild);
     }
 }
-
-/**
- * Atualiza o placar geral.
- */
 function updateScore(resultado) {
-    if (resultado.includes("O JOGADOR GANHOU")) {
-        placar.jogador += 1;
-    } else if (resultado.includes("O COMPUTADOR GANHOU")) {
-        placar.computador += 1;
-    } else if (resultado === "EMPATE!") {
-        placar.empates += 1;
+    if (resultado === RESULTADO_JOGADOR_GANHOU) {
+        placar.jogador++;
+    } else if (resultado === RESULTADO_COMPUTADOR_GANHOU) {
+        placar.computador++;
+    } else if (resultado === RESULTADO_EMPATE) {
+        placar.empates++;
     }
 
-    tentativasRestantes -= 1;
+    tentativasRestantes = Math.max(tentativasRestantes - 1, 0);
     playerScoreDisplay.textContent = placar.jogador;
     computerScoreDisplay.textContent = placar.computador;
-    attemptsDisplay.textContent = Math.max(tentativasRestantes, 0);
+    attemptsDisplay.textContent = tentativasRestantes;
 }
-
-/**
- * Escolhe uma mensagem aleatória de um array e a remove para evitar repetição.
- * @param {string[]} messages - Array de mensagens.
- */
 function getRandomMessage(messages) {
+    if (!messages || messages.length === 0) return "Fim de Jogo!";
     const index = Math.floor(Math.random() * messages.length);
-    return messages.splice(index, 1)[0]; // Remove a mensagem escolhida
+    return messages.splice(index, 1)[0];
 }
-
-/**
- * Verifica o fim de jogo (após todas as rodadas) e exibe mensagem final.
- */
 function checkForGameEnd() {
-    if (tentativasRestantes === 0) {
-        let statusFinal;
+    if (tentativasRestantes <= 0) {
+        let statusFinal = "empate";
+        let finalSound = sounds.finalDraw;
+        let buttonText = "Jogar Novamente";
 
         const winMessages = [
-            "Você DOMINOU completamente o jogo! 🏆",
-            "Parabéns, você é o campeão absoluto! 🎉",
-            "Vitória épica! Você foi incrível! 🥇",
-            "Você triunfou como um verdadeiro mestre! 💪",
-            "Belo trabalho! Mostrou quem manda! 👑"
+            "VITÓRIA! Você leu a mente do computador ou só deu sorte? 🤔🏆",
+            "CAMPEÃO! O computador já pediu a revanche! 🎉",
+            "INCRÍVEL! Suas habilidades no Jokenpô são lendárias! 🥇",
+            "DOMINOU! O computador está calculando como você fez isso... 💪",
+            "SHOW! Mandou bem demais! O troféu é seu! 👑",
+            "PERFEITO! Nem a IA mais avançada te pararia! ✨",
+            "UAU! Essa vitória foi mais bonita que um código sem bugs! 😉"
         ];
 
         const loseMessages = [
-            "Você foi completamente destruído! 🤖",
-            "O computador foi implacável! 📟",
-            "Oh não! Parece que não foi seu dia... ⚠️",
-            "Talvez seja hora de treinar mais! 🧐",
-            "Derrota amarga, mas você pode tentar novamente! 💔"
+            "DERROTA! A Skynet mandou lembranças... 🤖",
+            "OPS! O computador previu seus movimentos! 📟",
+            "QUASE LÁ! Faltou pouco... ou muito? ⚠️",
+            "IH! Acho que o computador andou treinando escondido! 🧐",
+            "NÃO FOI DESSA VEZ! Mas a vingança é um prato que se joga frio! 💔",
+            "GAME OVER! O computador riu em binário! 01101000 01100001! 😂",
+            "MELHOR SORTE NA PRÓXIMA! Ou use Pedra, todo mundo usa Pedra... 🗿"
         ];
 
         const drawMessages = [
-            "Empate? Jogo equilibrado demais! 🤷",
-            "Ninguém venceu, mas foi emocionante! 👏",
-            "Foi cabeça a cabeça! Empate perfeito! 🔄",
-            "Parece que vocês dois estão no mesmo nível! 🤝",
-            "Que jogo igualado! Nenhum perdeu, mas ninguém ganhou! ⚖️"
+            "EMPATE! Conexão mental com a máquina? Bizarro! 🤷",
+            "IGUAIS! Ninguém levou, mas a emoção foi real! 👏",
+            "SINCRONIZADOS! Foi quase um dueto de Jokenpô! 🔄",
+            "EQUILÍBRIO! A Força está balanceada entre vocês! 🤝",
+            "NEM GANHOU, NEM PERDEU! Apenas... empatou! ⚖️",
+            "DE NOVO? Vocês estão combinando as jogadas? 👀",
+            "TÃO IGUAL QUE DEU BUG! Brincadeira... ou não? 🤔"
         ];
+        let finalText = "";
+        if (placar.jogador > placar.computador) {
+            finalText = `🎉 ${getRandomMessage(winMessages)} 🎊`;
+            finalSound = sounds.finalWin;
+            statusFinal = "vitoria";
+        } else if (placar.computador > placar.jogador) {
+            finalText = `😞 ${getRandomMessage(loseMessages)}`;
+            finalSound = sounds.finalLose;
+            statusFinal = "derrota";
+            buttonText = "Tentar Revanche";
+        } else {
+            finalText = `🤝 ${getRandomMessage(drawMessages)}`;
+            statusFinal = "empate";
+        }
+        playGameSound(finalSound);
+        updateGameState(GameState.FINISHED);
+        if (finalMessageElement && finalResultTextElement && totalEmpatesElement) {
+            finalResultTextElement.textContent = finalText;
+            totalEmpatesElement.textContent = placar.empates;
 
-        // Configura a mensagem com base no resultado
-        if (finalMessageElement) {
-            let finalText = "";
-            let buttonText = "Jogar Novamente";
-
-            if (placar.jogador > placar.computador) {
-                finalText = `🎉 ${getRandomMessage(winMessages)} 🎊`;
-                playGameSound(finalWinSound);
-                statusFinal = "vitoria";
-            } else if (placar.computador > placar.jogador) {
-                finalText = `😞 ${getRandomMessage(loseMessages)}`;
-                buttonText = "Tente Novamente";
-                playGameSound(finalLoseSound);
-                statusFinal = "derrota";
-            } else {
-                finalText = `🤝 ${getRandomMessage(drawMessages)}`;
-                playGameSound(finalDrawSound);
-                statusFinal = "empate";
-            }
-
-            // Atualiza o conteúdo da mensagem final
-            document.getElementById('final-result-text').textContent = finalText;
-
-            // Atualiza a contagem de empates no final do jogo
-            const totalEmpatesElement = document.getElementById('total-empates');
-            if (totalEmpatesElement) {
-                totalEmpatesElement.textContent = placar.empates; // Exibe o número correto de empates
-            }
-
-            // Exibe a mensagem final
-            finalMessageElement.style.display = 'flex';
-
-            // Configura o botão de jogar novamente
-            const playAgainButton = document.getElementById('play-again');
             if (playAgainButton) {
-                playAgainButton.textContent = buttonText;
-
-                // Remove eventos antigos para evitar duplicação
-                playAgainButton.replaceWith(playAgainButton.cloneNode(true));
-
-                // Adiciona o evento de clique para o novo botão
-                document.getElementById('play-again').addEventListener('click', () => {
-                    initializeGame();
-                });
+                const newPlayAgainButton = playAgainButton.cloneNode(true);
+                playAgainButton.parentNode.replaceChild(newPlayAgainButton, playAgainButton);
+                newPlayAgainButton.addEventListener('click', initializeGame);
+                newPlayAgainButton.textContent = buttonText;
             }
+
+            finalMessageElement.style.display = 'flex';
         }
 
         updateLocalStorage(statusFinal);
-
-        btnChoices.forEach(button => {
-            button.disabled = true; // Desativa os botões após o fim do jogo
-        });
+        btnChoices.forEach(button => button.disabled = true);
     }
 }
-
-/**
- * Cria e mostra a animação de embaralhamento de JoKenPo
- * @param {number} jogadorChoice - Escolha do jogador (0: Pedra, 1: Papel, 2: Tesoura)
- * @param {string} jogadaComputador - Escolha final do computador (já determinada pelo servidor)
- * @param {function} callback - Função a ser chamada ao término da animação
- */
-function showJokenpoAnimation(jogadorChoice, jogadaComputador, callback) {
-    // Símbolos do jogo
-    const symbols = ["👊", "✋", "✌️"];
-    const jogadorSymbol = symbols[jogadorChoice];
-
-    // Mapeamento de jogada do computador para índice do array symbols
-    const computerChoiceMapping = {
-        "pedra": 0,
-        "papel": 1,
-        "tesoura": 2
-    };
-
-    // Índice para a jogada do computador
-    const computerIndex = computerChoiceMapping[jogadaComputador.toLowerCase()];
-
-    // Configurar a estrutura da animação
+function showJokenpoAnimation(jogadorChoiceIndex, jogadaComputadorTexto, onAnimationEnd) {
+    const jogadorSymbol = SIMBOLOS_JOGO[jogadorChoiceIndex];
+    const computerIndex = JOGADA_PARA_INDICE[jogadaComputadorTexto.toLowerCase()];
+    const computerFinalSymbol = SIMBOLOS_JOGO[computerIndex];
     animationContainer.innerHTML = `
         <div class="symbol-container">
             <div class="player-choice">
-                <div class="choice-label">Você escolheu</div>
+                <div class="choice-label">Você</div>
                 <div class="jokenpo-symbol player-symbol">${jogadorSymbol}</div>
             </div>
-
             <div class="vs-text">VS</div>
-
             <div class="computer-choice">
                 <div class="choice-label">Computador</div>
                 <div class="jokenpo-symbol computer-symbol">?</div>
@@ -396,136 +382,154 @@ function showJokenpoAnimation(jogadorChoice, jogadaComputador, callback) {
         </div>
         <div class="countdown">3</div>
     `;
+    animationContainer.classList.add('active', 'animating');
+    const computerSymbolElement = animationContainer.querySelector('.computer-symbol');
+    const countdownElement = animationContainer.querySelector('.countdown');
+    const playerSymbolElement = animationContainer.querySelector('.player-symbol');
 
-    // Mostrar a animação
-    animationContainer.classList.add('active');
+    playerSymbolElement.classList.add('highlight');
 
-    const computerSymbol = animationContainer.querySelector('.computer-symbol');
-    const countdown = animationContainer.querySelector('.countdown');
-    const playerSymbol = animationContainer.querySelector('.player-symbol');
-
-    // Destacar a escolha do jogador
-    playerSymbol.classList.add('highlight');
-
-    // Contador de tempo
     let secondsLeft = 3;
-    let symbolIndex = 0;
+    let symbolShuffleIndex = 0;
 
-    // Intervalo para trocar o símbolo do computador rapidamente (embaralhamento)
     const shuffleInterval = setInterval(() => {
-        symbolIndex = (symbolIndex + 1) % 3;
-        computerSymbol.textContent = symbols[symbolIndex];
-    }, 150); // Troca símbolos a cada 150ms
-
-    // Intervalo para o contador regressivo
+        symbolShuffleIndex = (symbolShuffleIndex + 1) % SIMBOLOS_JOGO.length;
+        computerSymbolElement.textContent = SIMBOLOS_JOGO[symbolShuffleIndex];
+    }, 150);
     const countdownInterval = setInterval(() => {
-        secondsLeft -= 1;
-        countdown.textContent = secondsLeft;
+        secondsLeft--;
+        countdownElement.textContent = secondsLeft > 0 ? secondsLeft : "Já!";
 
-        // Quando chegar a zero, mostrar o resultado real
         if (secondsLeft <= 0) {
             clearInterval(countdownInterval);
             clearInterval(shuffleInterval);
+            computerSymbolElement.textContent = computerFinalSymbol;
+            computerSymbolElement.classList.add('highlight');
 
-            // Mostrar a escolha real do computador
-            computerSymbol.textContent = symbols[computerIndex];
-            computerSymbol.classList.add('highlight');
-
-            // Esperar mais um pouco para que o usuário veja o resultado
             setTimeout(() => {
-                animationContainer.classList.remove('active');
-                if (callback) callback();
-            }, 800);
+                animationContainer.classList.remove('active', 'animating');
+                if (typeof onAnimationEnd === 'function') onAnimationEnd();
+            }, DELAY_ANIMACAO_RESULTADO);
         }
     }, 1000);
 }
-
-/**
- * Envia a jogada do jogador ao servidor e processa a resposta.
- */
-async function sendChoiceToServer(jogadorChoice) {
-    if (isWaiting || tentativasRestantes === 0) return;
-
+async function checkAudioFiles() {
     try {
-        isWaiting = true;
-        playGameSound(clickSound);
+        const response = await fetch('/check_files');
+        const data = await response.json();
+        if (data.status !== 'ok') {
+            showFeedback('Alguns arquivos de áudio estão faltando', 'warning');
+        }
+    } catch (error) {
+        console.error('Erro ao verificar arquivos de áudio:', error);
+    }
+}
+async function checkApiHealth() {
+    try {
+        const response = await fetch('/ping');
+        const data = await response.json();
+        if (data.status !== 'ok') {
+            showFeedback('Serviço temporariamente indisponível', 'warning');
+        }
+    } catch (error) {
+        showFeedback('Não foi possível conectar ao servidor');
+    }
+}
+async function sendChoiceToServer(jogadorChoiceIndex) {
+    if (isWaiting || tentativasRestantes <= 0) return;
 
+    setLoadingState(true);
+    playGameSound(sounds.click);
+    try {
+        if (!navigator.onLine) {
+            throw new Error(OFFLINE_MESSAGE);
+        }
         const response = await fetch('/play', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ jogador: jogadorChoice, ultimo_jogador: ultimoJogador })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                jogador: jogadorChoiceIndex,
+                ultimo_jogador: ultimoJogador
+            })
         });
-
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Erro inesperado!");
+            throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
         }
-
         const data = await response.json();
-        const { jogada_computador, resultado } = data;
-        ultimoJogador = jogadorChoice;
+        ultimoJogador = jogadorChoiceIndex;
 
-        // Agora passamos a jogada_computador diretamente para a animação
-        showJokenpoAnimation(jogadorChoice, jogada_computador, () => {
-            updateResultDisplay(resultado, jogada_computador);
-            addToHistory(resultado, ITENS[jogadorChoice], jogada_computador);
-            updateScore(resultado);
+        showJokenpoAnimation(jogadorChoiceIndex, data.jogada_computador, () => {
+            updateResultDisplay(data.resultado, data.jogada_computador);
+            addToHistory(data.resultado, ITENS_JOGO[jogadorChoiceIndex], data.jogada_computador);
+            updateScore(data.resultado);
 
             setTimeout(() => {
-                isWaiting = false;
+                setLoadingState(false);
                 checkForGameEnd();
-            }, 500);
+            }, DELAY_CHECK_FIM_JOGO);
         });
-
     } catch (error) {
-        resultDisplay.innerHTML = `<span class="error">Erro: ${error.message}</span>`;
-        isWaiting = false;
+        console.error("Erro ao processar jogada:", error);
+        showFeedback(error.message);
+        setLoadingState(false);
     }
 }
-
-/**
- * Exibe uma mensagem rápida animada com base no resultado.
- * @param {string} resultado - Resultado da rodada ("O JOGADOR GANHOU!", "O COMPUTADOR GANHOU!", "EMPATE!")
- */
 function showQuickResultMessage(resultado) {
-    const quickResult = document.getElementById('quick-result');
-    if (!quickResult) return;
+    if (!quickResultElement) return;
 
-    // Define o texto, cor e classe com base no resultado
-    if (resultado.includes("O JOGADOR GANHOU")) {
-        quickResult.textContent = "WIN";
-        quickResult.className = "win"; // Aplica o estilo "win"
-    } else if (resultado.includes("O COMPUTADOR GANHOU")) {
-        quickResult.textContent = "LOSE";
-        quickResult.className = "lose"; // Aplica o estilo "lose"
-    } else if (resultado === "EMPATE!") {
-        quickResult.textContent = "DRAW";
-        quickResult.className = "draw"; // Aplica o estilo "draw"
+    let text = "";
+    let className = "";
+
+    if (resultado === RESULTADO_JOGADOR_GANHOU) {
+        text = "WIN";
+        className = "win";
+    } else if (resultado === RESULTADO_COMPUTADOR_GANHOU) {
+        text = "LOSE";
+        className = "lose";
+    } else {
+        text = "DRAW";
+        className = "draw";
     }
 
-    // Exibe a mensagem e remove após a animação
-    quickResult.style.display = "block";
+    quickResultElement.textContent = text;
+    quickResultElement.className = className;
+    quickResultElement.style.display = "block";
+
     setTimeout(() => {
-        quickResult.style.display = "none";
-        quickResult.className = ""; // Remove a classe para evitar conflitos
-    }, 3000); // Sincronizado com os 3 segundos
+        quickResultElement.style.display = "none";
+        quickResultElement.className = "";
+    }, DELAY_MENSAGEM_RAPIDA);
 }
-
-// Mapeia as jogadas com os textos correspondentes
-const ITENS = ['Pedra', 'Papel', 'Tesoura'];
-
-// Adiciona os eventos de clique aos botões de escolha
-btnChoices.forEach(button =>
+// ================== Event Listeners e Inicialização ==================
+btnChoices.forEach(button => {
     button.addEventListener('click', () => {
         if (!isWaiting) {
             btnChoices.forEach(btn => btn.classList.remove('clicked'));
             button.classList.add('clicked');
-            sendChoiceToServer(parseInt(button.dataset.choice, 10));
+            const choiceIndex = parseInt(button.dataset.choice, 10);
+            sendChoiceToServer(choiceIndex);
         }
-    })
-);
-
-// Configuração do botão "Jogar Novamente"
-document.getElementById('play-again').addEventListener('click', () => {
+    });
+});
+if (playAgainButton) {
+    playAgainButton.addEventListener('click', initializeGame);
+}
+// Listeners para estado online/offline
+window.addEventListener('online', () => {
+    offlineMessageElement.hidden = true;
+});
+window.addEventListener('offline', () => {
+    offlineMessageElement.hidden = false;
+    showFeedback(OFFLINE_MESSAGE, 'warning');
+});
+// Inicialização
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkApiHealth();
     initializeGame();
+    initBackgroundMusic();
+    checkAudioFiles();
 });

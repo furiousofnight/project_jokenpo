@@ -15,7 +15,6 @@ body {
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    /* Para permitir que o rodapé fique no final */
 }
 
 .container {
@@ -38,6 +37,7 @@ body {
     background: linear-gradient(90deg, #ff007b, #ffda00);
     background-clip: text;
     -webkit-background-clip: text;
+    background-clip: text;
     color: transparent;
     text-shadow: 0 3px 8px rgba(255, 0, 123, 0.5);
     animation: glow 1.8s infinite alternate;
@@ -47,8 +47,8 @@ body {
     font-size: 2.4rem;
     font-weight: bold;
     background: linear-gradient(90deg, #ff007b, #ffda00, #00ccff);
-    background-clip: text;
     -webkit-background-clip: text;
+    background-clip: text;
     color: transparent;
     text-shadow: none;
     animation: glow 2s infinite alternate;
@@ -84,6 +84,7 @@ body {
     letter-spacing: 0.5px;
     background: linear-gradient(90deg, #fface9, #ffffff);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -105,6 +106,7 @@ body {
     font-size: 1.4rem;
     background: linear-gradient(90deg, #fa709a, #fee140);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -113,6 +115,7 @@ body {
     font-weight: bold;
     background: linear-gradient(90deg, #ff9f0b, #f11775);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -165,28 +168,49 @@ body {
 }
 
 /* Resultados & Mensagens Finais */
+/* Melhor visual para a janela de resultados */
 .result-display {
-    margin-top: 20px;
-    padding: 30px;
-    font-size: 2rem;
-    background: linear-gradient(135deg, #5a3ead, #ff7e63, #2d539e);
-    border: 3px solid #ff007b;
-    border-radius: 15px;
+    margin: 24px auto 0 auto;
+    padding: 18px 28px;
+    max-width: 340px;
+    min-width: 220px;
+    font-size: 1.25rem;
+    background: rgba(40, 40, 80, 0.85);
+    border: 1.5px solid #ff007b;
+    border-radius: 18px;
     text-align: center;
-    color: #ffffff;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s ease, background 0.3s ease;
-    animation: fadeIn 0.8s ease-in-out;
+    color: #fff;
+    box-shadow: 0 4px 24px 0 rgba(255, 0, 123, 0.10), 0 2px 8px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(4px);
+    transition: box-shadow 0.2s, background 0.2s;
+    animation: fadeIn 0.7s;
+    position: relative;
+}
+
+.result-display::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: linear-gradient(120deg, rgba(255, 0, 123, 0.10) 0%, rgba(0, 204, 255, 0.08) 100%);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .result-display p {
-    font-size: 2.2rem;
+    position: relative;
+    z-index: 1;
+    font-size: 1.45rem;
     font-weight: bold;
     letter-spacing: 1px;
-    background: linear-gradient(135deg, #ffe600, #ff007b, #00ccff);
+    background: linear-gradient(90deg, #ffe600, #ff007b, #00ccff);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+    text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.25);
+    margin: 0;
+    padding: 0;
+    line-height: 1.3;
 }
 
 /* Mensagem Final de Jogo */
@@ -207,12 +231,6 @@ body {
     justify-content: center;
     align-items: center;
 
-    /* Removido para permitir que o HTML controle a visibilidade */
-    /* visibility: visible !important; */
-    /* opacity: 1 !important; */
-    /* display: flex !important; */
-
-    /* Adições relacionadas à posição */
     max-width: 700px;
     margin: 20px auto;
 }
@@ -237,56 +255,228 @@ body {
     box-shadow: 0px 6px 20px rgba(255, 28, 133, 0.8);
 }
 
-/* Histórico */
+/* Histórico - visual moderno, alinhado e integrado ao padrão do layout */
 .history ul {
     margin-top: 20px;
-    padding: 20px;
+    padding: 18px 10px 18px 10px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: 350px;
+    max-height: 340px;
     overflow-y: auto;
-    background: linear-gradient(135deg, #26235e, #7463d1);
-    border-radius: 15px;
-    border: 2px solid #ff6600;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+    background: rgba(34, 32, 60, 0.92);
+    border-radius: 18px;
+    border: none;
+    box-shadow: 0 6px 24px rgba(255, 0, 123, 0.10), 0 2px 8px rgba(0, 0, 0, 0.13);
+    backdrop-filter: blur(6px);
+    position: relative;
+}
+
+.history ul::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: linear-gradient(120deg, rgba(255, 0, 123, 0.06) 0%, rgba(0, 204, 255, 0.08) 100%);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .history li {
-    padding: 15px;
-    font-size: 1.3rem;
-    color: #ffffff;
+    position: relative;
+    padding: 12px 18px;
+    font-size: 1.08rem;
+    color: #fffbe6;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, #34255f, #9c52e4);
-    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     animation: popUp 0.4s ease-out;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    gap: 10px;
+    border-left: 4px solid transparent;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    z-index: 1;
+}
+
+.history li.history-win {
+    border-left: 4px solid #00ff99;
+    background: rgba(0, 255, 153, 0.07);
+}
+
+.history li.history-lose {
+    border-left: 4px solid #ff3b3b;
+    background: rgba(255, 59, 59, 0.07);
+}
+
+.history li.history-draw {
+    border-left: 4px solid #ffe600;
+    background: rgba(255, 230, 0, 0.07);
+}
+
+.history li:hover {
+    background: rgba(255, 0, 123, 0.10);
+    box-shadow: 0 2px 8px rgba(255, 0, 123, 0.10);
 }
 
 .history li span {
-    font-size: 1.2rem;
-    font-weight: bold;
-    background: linear-gradient(135deg, #ffcc00, #ff007b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+    font-size: 1.05rem;
+    font-weight: 500;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: initial;
+    color: #ffe600;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
 }
 
-/* Nova Seção de Estatísticas */
-#stats-display {
-    margin: 30px auto 20px;
-    padding: 15px;
-    background: #4d4d4d;
-    /* Cinza sólido */
+.history li .result-text {
+    font-weight: bold;
+    font-size: 1.08em;
+    letter-spacing: 0.5px;
+    color: #fff;
+    padding: 2px 8px;
     border-radius: 8px;
-    border: 2px solid #ff6600;
+    background: linear-gradient(90deg, #ff007b 0%, #ffe600 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.13);
+}
+
+@media (max-width: 480px) {
+    .history ul {
+        padding: 10px 2vw;
+        max-height: 220px;
+    }
+
+    .history li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 10px 8px;
+        font-size: 0.97rem;
+    }
+
+    .history li span {
+        font-size: 0.97rem;
+        margin-right: 0;
+    }
+}
+
+/* Estatísticas - visual moderno, clean e integrado ao restante do layout */
+#stats-display {
+    margin: 28px auto 20px;
+    padding: 22px 28px 16px 28px;
+    background: rgba(34, 32, 60, 0.92);
+    border-radius: 20px;
+    border: none;
     font-size: 1.1rem;
     color: #ffe600;
     text-align: center;
-    width: 52%;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+    width: 320px;
+    max-width: 96vw;
+    box-shadow: 0 8px 32px 0 rgba(255, 0, 123, 0.10), 0 2px 8px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(8px);
+    position: relative;
+    transition: box-shadow 0.2s, background 0.2s;
+    animation: fadeIn 0.7s;
+    overflow: hidden;
+    border-bottom: 3px solid #ff007b;
+}
+
+#stats-display::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(120deg, rgba(255, 0, 123, 0.07) 0%, rgba(0, 204, 255, 0.09) 100%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+#stats-display * {
+    position: relative;
+    z-index: 1;
+}
+
+#stats-display h3,
+#stats-display p.title {
+    font-size: 1.18rem;
+    font-weight: bold;
+    margin-bottom: 14px;
+    background: linear-gradient(90deg, #ff007b, #ffe600, #00ccff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    letter-spacing: 1px;
+    text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.13);
+}
+
+#stats-display .stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 0 auto;
+    padding: 0;
+}
+
+#stats-display .stats-item {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-size: 1.07rem;
+    color: #fffbe6;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+#stats-display .stats-item strong {
+    color: #ffe600;
+    font-weight: bold;
+    font-size: 1.08em;
+    letter-spacing: 0.5px;
+}
+
+#stats-display .stats-label {
+    color: #ffb300;
+    font-weight: 500;
+    font-size: 1em;
+    margin-right: 4px;
+}
+
+#stats-display .stats-item:hover {
+    background: rgba(255, 0, 123, 0.10);
+    box-shadow: 0 2px 8px rgba(255, 0, 123, 0.10);
+}
+
+@media (max-width: 480px) {
+    #stats-display {
+        width: 98vw;
+        padding: 14px 3vw 8px 3vw;
+        font-size: 1rem;
+    }
+
+    #stats-display h3,
+    #stats-display p.title {
+        font-size: 1.05rem;
+    }
+
+    #stats-display .stats-item {
+        font-size: 0.97rem;
+        padding: 6px 8px;
+    }
 }
 
 /* Rodapé */
@@ -299,7 +489,6 @@ body {
     font-weight: bold;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5);
     margin-top: auto;
-    /* Fixa o rodapé no final */
 }
 
 .site-footer a {
@@ -457,6 +646,7 @@ body {
     text-shadow: 0 0 15px rgba(255, 0, 123, 0.8);
     background: linear-gradient(90deg, #ff007b, #ffda00);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: bold;
 }
@@ -560,7 +750,6 @@ body {
         font-size: 0.9rem;
     }
 
-    /* Responsividade para animação JoKenPo */
     .jokenpo-symbol {
         width: 100px;
         height: 100px;
@@ -580,7 +769,6 @@ body {
         margin-top: 20px;
     }
 
-    /* Ajuste do botão de música para telas menores */
     .music-btn {
         width: 40px;
         height: 40px;
@@ -588,7 +776,6 @@ body {
     }
 }
 
-/* Para dispositivos muito pequenos (abaixo de 480px) */
 @media (max-width: 480px) {
     .jokenpo-symbol {
         width: 80px;
@@ -642,7 +829,6 @@ body {
         padding: 10px;
     }
 
-    /* Ajuste do botão de música para dispositivos muito pequenos */
     .music-btn {
         width: 35px;
         height: 35px;
@@ -652,7 +838,6 @@ body {
     }
 }
 
-/* Para dispositivos extremamente pequenos */
 @media (max-width: 360px) {
     .main-header h1 {
         font-size: 1.9rem;
@@ -668,7 +853,6 @@ body {
     }
 }
 
-/* Suporte para dispositivos em orientação paisagem */
 @media (max-height: 600px) and (orientation: landscape) {
     .symbol-container {
         flex-direction: row;
@@ -691,14 +875,12 @@ body {
         margin-bottom: 5px;
     }
 
-    /* Ajuste do botão de música para modo paisagem */
     .music-control {
         bottom: 10px;
         right: 10px;
     }
 }
 
-/* Garantindo que a animação seja suave em dispositivos de baixo desempenho */
 @media (prefers-reduced-motion: reduce) {
 
     .jokenpo-symbol,
@@ -734,7 +916,6 @@ body {
     color: white;
     text-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 50px rgba(255, 255, 255, 0.5);
     opacity: 0.9;
-    /* 90% de transparência */
     z-index: 1000;
     pointer-events: none;
     animation: bounceInOut 3s ease-in-out;
@@ -742,26 +923,21 @@ body {
     letter-spacing: 5px;
 }
 
-/* Estilo único para cada mensagem */
 #quick-result.win {
     color: #00ff00;
-    /* Verde brilhante */
     text-shadow: 0 0 30px #00ff00, 0 0 60px #00ff00;
 }
 
 #quick-result.lose {
     color: #ff0000;
-    /* Vermelho brilhante */
     text-shadow: 0 0 30px #ff0000, 0 0 60px #ff0000;
 }
 
 #quick-result.draw {
     color: #ffff00;
-    /* Amarelo brilhante */
     text-shadow: 0 0 30px #ffff00, 0 0 60px #ffff00;
 }
 
-/* Animação divertida */
 @keyframes bounceInOut {
     0% {
         opacity: 0;
