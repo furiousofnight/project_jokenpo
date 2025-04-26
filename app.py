@@ -146,20 +146,20 @@ def index():
 @app.route('/play', methods=['POST'])
 @limiter.limit("30/minute")
 def play():
-    """Processa uma jogada."""
     try:
-        app.logger.info("Requisição de jogada recebida.")
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
         dados = request.get_json(force=True)
-        app.logger.info(f"Dados da jogada: {dados}")
-
         jogador, ultimo_jogador = validar_jogada(dados)
         computador = jogada_computador(ultimo_jogador)
         resultado = determinar_resultado(jogador, computador)
-
         jogadas_counter.inc()
 
+        # LOG DETALHADO
         app.logger.info(
-            f"Resultado: Jogador = {ITENS[jogador]}, Computador = {ITENS[computador]}. Resultado: {resultado}")
+            f"[JOGADA] IP: {ip} | Jogador: {jogador} ({ITENS[jogador]}) | "
+            f"Computador: {computador} ({ITENS[computador]}) | "
+            f"Resultado: {resultado.upper()} | Dados recebidos: {dados}"
+        )
 
         return jsonify({
             "jogada_computador": ITENS[computador],
@@ -167,22 +167,24 @@ def play():
         }), 200
 
     except JogadaInvalidaError as e:
-        app.logger.error(f"Erro de validação: {e}")
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+        app.logger.warning(f"[ERRO JOGADA] IP: {ip} | Erro: {e} | Dados: {request.get_json(force=True)}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
-        app.logger.exception(f"Erro interno inesperado: {e}")
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+        app.logger.exception(f"[ERRO INTERNO] IP: {ip} | Erro: {e} | Dados: {request.get_json(force=True)}")
         return jsonify({"error": "Erro interno no servidor. Tente novamente mais tarde."}), 500
-
 
 @app.route('/static/sounds/<path:filename>')
 def serve_sounds(filename):
     """Serve arquivos de som com cache."""
+    app.logger.info(f"Requisição de áudio: {filename} de {request.remote_addr}")
     if ".." in filename or filename.startswith("/"):
-        app.logger.warning(f"Tentativa de acesso inválido a arquivo: {filename}")
+        app.logger.warning(f"Tentativa de acesso inválido a arquivo: {filename} de {request.remote_addr}")
         abort(400, description="Acesso inválido.")
 
     sound_folder = os.path.join(app.static_folder, 'sounds')
-    app.logger.info(f"Solicitação de arquivo de som: {filename}")
+    app.logger.info(f"Buscando arquivo de som em: {os.path.join(sound_folder, filename)}")
 
     try:
         return send_from_directory(sound_folder, filename, as_attachment=False)
@@ -193,11 +195,10 @@ def serve_sounds(filename):
         app.logger.exception(f"Erro ao servir arquivo de som: {filename} - {e}")
         return jsonify({"error": "Erro ao servir arquivo de som."}), 500
 
-
 @app.route('/check_files', methods=['GET'])
 def check_files():
     """Verifica a existência dos arquivos de som."""
-    app.logger.info("Verificação dos arquivos de som iniciada.")
+    app.logger.info(f"Verificação dos arquivos de som iniciada por {request.remote_addr}")
 
     sound_files = [
         "background_music.mp3", "click.mp3", "win.mp3", "lose.mp3",
@@ -213,22 +214,22 @@ def check_files():
         existe = os.path.exists(file_path)
         status[sound] = existe
         if not existe:
-            all_found = False
             app.logger.warning(f"Arquivo não encontrado: {sound} em {file_path}")
+            all_found = False
         else:
             app.logger.info(f"Arquivo encontrado: {sound}")
 
+    app.logger.info(f"Resultado da verificação de arquivos: {status}")
     return jsonify({
         "status": "ok" if all_found else "warning",
         "message": "Todos os arquivos de som encontrados." if all_found else "Alguns arquivos de som estão faltando.",
         "files": status
     })
 
-
 @app.route('/ping', methods=['GET'])
 def ping():
     """Endpoint de diagnóstico."""
-    app.logger.info("Ping recebido - aplicação funcionando.")
+    app.logger.info(f"Ping recebido de {request.remote_addr} - aplicação funcionando.")
     return jsonify({
         "status": "ok",
         "message": "Aplicação JoKenPô está rodando!",
