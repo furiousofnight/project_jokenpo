@@ -350,13 +350,12 @@ function checkForGameEnd() {
             finalResultTextElement.textContent = finalText;
             totalEmpatesElement.textContent = placar.empates;
 
-            if (playAgainButton) {
-                const newPlayAgainButton = playAgainButton.cloneNode(true);
-                playAgainButton.parentNode.replaceChild(newPlayAgainButton, playAgainButton);
-                newPlayAgainButton.addEventListener('click', initializeGame);
-                newPlayAgainButton.textContent = buttonText;
+            const playAgainBtn = document.getElementById('play-again');
+            if (playAgainBtn) {
+                playAgainBtn.textContent = buttonText;
+                playAgainBtn.onclick = initializeGame;
+                playAgainBtn.disabled = false;
             }
-
             finalMessageElement.style.display = 'flex';
         }
 
