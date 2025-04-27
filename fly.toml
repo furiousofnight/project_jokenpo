@@ -31,12 +31,12 @@ kill_timeout = "5s"
   # Health check HTTP mais robusto
   [[services.http_checks]]
     interval = "10s"
-    timeout = "2s"
+    timeout = "5s"  # Aumente o timeout se necessário
     grace_period = "5s"
     method = "get"
-    path = "/ping" # Aponta para a rota de health check da aplicação
-    protocol = "http" # Verifica internamente via HTTP
-    tls_skip_verify = true # Necessário para checks internos na rede Fly
+    path = "/ping"
+    protocol = "http"
+    tls_skip_verify = true
 
 [[vm]]
   memory = "1gb"

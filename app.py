@@ -1,32 +1,35 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory, abort
-from flask_cors import CORS
-from flask_limiter import Limiter # type: ignore
-from flask_limiter.util import get_remote_address # type: ignore
-from flask_caching import Cache # type: ignore
-from prometheus_client import Counter # type: ignore
-from werkzeug.middleware.proxy_fix import ProxyFix
+import logging
 import os
 import random
-import logging
 from logging.handlers import RotatingFileHandler
+from urllib.parse import urlparse, urljoin
 
+from flask import Flask, render_template, request, jsonify, send_from_directory, abort, redirect
+from flask_caching import Cache  # type: ignore
+from flask_cors import CORS
+from flask_limiter import Limiter  # type: ignore
+from flask_limiter.util import get_remote_address  # type: ignore
+from prometheus_client import Counter  # type: ignore
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+# ======= NOVO: Flask-Talisman para segurança automática =======
+from flask_talisman import Talisman
 
 # Exceções personalizadas
 class JokenpoError(Exception):
     """Exceção base para erros do jogo"""
     pass
 
-
 class JogadaInvalidaError(JokenpoError):
     """Exceção para jogadas inválidas"""
     pass
-
 
 # Configuração do aplicativo
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.wsgi_app = ProxyFix(app.wsgi_app)
 CORS(app, resources={r"/play": {"origins": ["http://localhost:3000"]}})
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
 # Configuração correta do Limiter
 limiter = Limiter(
     app=app,
@@ -34,12 +37,15 @@ limiter = Limiter(
     storage_uri="memory://",
     default_limits=["200 per day", "50 per hour"]
 )
+
 # Métricas
 jogadas_counter = Counter('jokenpo_jogadas_total', 'Total de jogadas realizadas')
 vitorias_jogador = Counter('jokenpo_vitorias_jogador', 'Vitórias do jogador')
+
 # Configurações de desenvolvimento
 if app.debug:
     app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+
 # Configuração do logger
 handler = RotatingFileHandler('jokenpo.log', maxBytes=1000000, backupCount=3)
 formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', '%Y-%m-%d %H:%M:%S')
@@ -49,22 +55,36 @@ if app.logger.handlers:
 app.logger.addHandler(handler)
 app.logger.setLevel(logging.INFO)
 app.logger.info("Aplicativo de Jokenpô iniciado!")
+
 # Constantes do jogo
 ITENS = ["pedra", "papel", "tesoura"]
 REGRAS_VITORIA = {
     0: 2,  # Pedra vence Tesoura
     1: 0,  # Papel vence Pedra
-    2: 1  # Tesoura vence Papel
+    2: 1   # Tesoura vence Papel
 }
 JOGADA_QUE_VENCE = {
     0: 1,  # Pedra é vencida por Papel
     1: 2,  # Papel é vencido por Tesoura
-    2: 0  # Tesoura é vencida por Pedra
+    2: 0   # Tesoura é vencida por Pedra
 }
+
 # Criação de diretórios necessários
 os.makedirs(app.static_folder, exist_ok=True)
 os.makedirs(os.path.join(app.static_folder, 'sounds'), exist_ok=True)
 
+# ======= NOVO: Configuração do Flask-Talisman (CSP e outros headers) =======
+csp = {
+    'default-src': ["'self'"],
+    'script-src': ["'self'"],
+    'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    'font-src': ["'self'", "https://fonts.gstatic.com"],
+    'img-src': ["'self'", "data:"],
+    'media-src': ["'self'"],
+    'object-src': ["'none'"],
+    'connect-src': ["'self'"]
+}
+Talisman(app, content_security_policy=csp)
 
 def jogada_computador(ultimo_jogador):
     """
@@ -96,7 +116,6 @@ def jogada_computador(ultimo_jogador):
         app.logger.info(f"Estratégia: Jogada perdedora. Computador joga: {ITENS[jogada_perdedora]}")
         return jogada_perdedora
 
-
 def determinar_resultado(jogador, computador):
     """Determina o resultado do jogo."""
     if jogador == computador:
@@ -106,7 +125,6 @@ def determinar_resultado(jogador, computador):
     else:
         vitorias_jogador.inc()
         return "O JOGADOR GANHOU!"
-
 
 def validar_jogada(dados):
     """Valida e processa os dados da requisição."""
@@ -134,6 +152,20 @@ def validar_jogada(dados):
             app.logger.warning(f"Tipo inválido para 'ultimo_jogador' ({ultimo_jogador_str}). Valor ignorado.")
     return jogador, ultimo_jogador
 
+# 2. Função para validar URLs de redirecionamento seguro
+def is_safe_url(target):
+    # Garante que o redirecionamento é apenas para o mesmo domínio
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
+
+# 3. Exemplo de endpoint seguro para redirecionamento (caso use OpenID/OAuth)
+@app.route('/safe-redirect')
+def safe_redirect():
+    redirect_uri = request.args.get('redirect_uri')
+    if not redirect_uri or not is_safe_url(redirect_uri):
+        abort(400, description="Redirecionamento inseguro detectado.")
+    return redirect(redirect_uri)
 
 # Rotas
 @app.route('/')
@@ -141,7 +173,6 @@ def index():
     """Renderiza a página principal do jogo."""
     app.logger.info("Página inicial acessada.")
     return render_template('index.html')
-
 
 @app.route('/play', methods=['POST'])
 @limiter.limit("30/minute")
@@ -234,8 +265,7 @@ def ping():
         "status": "ok",
         "message": "Aplicação JoKenPô está rodando!",
         "timestamp": os.environ.get("FLY_ALLOC_ID", "local-dev")
-    })
-
+    }), 200  # Adicionando o código de status HTTP 200
 
 # Manipuladores de erro
 @app.errorhandler(400)
@@ -243,20 +273,17 @@ def error_400(e):
     app.logger.error(f"400 Bad Request: {e}")
     return jsonify({"error": str(e.description) if hasattr(e, 'description') else "Requisição inválida."}), 400
 
-
 @app.errorhandler(404)
 def error_404(e):
     app.logger.error(f"404 Not Found: {e}")
     return jsonify({"error": "Recurso não encontrado."}), 404
-
 
 @app.errorhandler(500)
 def error_500(e):
     app.logger.exception(f"500 Internal Server Error: {e}")
     return jsonify({"error": "Erro interno no servidor. Tente novamente mais tarde."}), 500
 
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     debug_mode = os.environ.get("FLASK_ENV") == "development"
-    app.run(host="0.0.0.0", port=port, debug=debug_mode)
+    app.run(host="0.0.0.0", port=port, debug=debug_mode, ssl_context=('certs/cert.pem', 'certs/key.pem'))

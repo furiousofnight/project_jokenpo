@@ -7,3 +7,9 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
 venv\**\*
 fly.toml
+   __pycache__
+   *.pyc
+   *.pyo
+   .env
+   .git
+   .gitignore

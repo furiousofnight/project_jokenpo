@@ -76,6 +76,24 @@ const sounds = {
     finalLose: new Audio('/static/sounds/final_lose.mp3'),
     finalDraw: new Audio('/static/sounds/final_draw.mp3')
 };
+
+// ================== Segurança: Função para escapar HTML ==================
+function escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(/[&<>"'`=\/]/g, function (s) {
+        return ({
+            '&': '&',
+            '<': '<',
+            '>': '>',
+            '"': '"',
+            "'": ''',
+            '`': '`',
+            '=': '=',
+            '/': '/'
+        })[s];
+    });
+}
+
 // ================== Funções de Utilidade ==================
 function showLoadingOverlay(show) {
     loadingOverlay.hidden = !show;
@@ -165,9 +183,9 @@ function displayTotalStats() {
     if (statsDisplayElement) {
         statsDisplayElement.innerHTML = `
             <p><strong>Estatísticas Gerais:</strong></p>
-            <p>Vitórias: ${storageStats.vitorias}</p>
-            <p>Derrotas: ${storageStats.derrotas}</p>
-            <p>Empates: ${storageStats.empates}</p>
+            <p>Vitórias: ${escapeHTML(storageStats.vitorias.toString())}</p>
+            <p>Derrotas: ${escapeHTML(storageStats.derrotas.toString())}</p>
+            <p>Empates: ${escapeHTML(storageStats.empates.toString())}</p>
         `;
     }
 }
@@ -186,11 +204,11 @@ function setLoadingState(isLoading) {
     }
 }
 function displayTemporaryError(message) {
-    resultDisplay.innerHTML = `<span class="error">Erro: ${message}</span>`;
+    resultDisplay.innerHTML = `<span class="error">Erro: ${escapeHTML(message)}</span>`;
     resultDisplay.classList.add('error');
     setTimeout(() => {
         if (resultDisplay.classList.contains('error')) {
-            resultDisplay.innerHTML = "Tente novamente!";
+            resultDisplay.textContent = "Tente novamente!";
             resultDisplay.classList.remove('error');
         }
     }, 4000);
@@ -227,11 +245,11 @@ function updateResultDisplay(resultado, jogadaComputador) {
         [RESULTADO_COMPUTADOR_GANHOU]: "Oh não! O computador venceu essa. 🤖",
         [RESULTADO_EMPATE]: "Foi um empate! Equilíbrio total! 😯"
     };
-    const jogadaComputadorDisplay = jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1);
+    const jogadaComputadorDisplay = escapeHTML(jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1));
     resultDisplay.innerHTML = `
         <div class="animated-message">
             <p>Computador escolheu: <strong>${jogadaComputadorDisplay}</strong></p>
-            <p>${messagesByResult[resultado] || resultado}</p>
+            <p>${escapeHTML(messagesByResult[resultado] || resultado)}</p>
         </div>
     `;
     resultDisplay.classList.remove('loading', 'error');
@@ -262,13 +280,14 @@ function addToHistory(resultado, jogadaJogador, jogadaComputador) {
     }
 
     li.classList.add(resultadoClasse);
-    const jogadaJogadorDisplay = jogadaJogador.charAt(0).toUpperCase() + jogadaJogador.slice(1);
-    const jogadaComputadorDisplay = jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1);
+    const jogadaJogadorDisplay = escapeHTML(jogadaJogador.charAt(0).toUpperCase() + jogadaJogador.slice(1));
+    const jogadaComputadorDisplay = escapeHTML(jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1));
+    const resultadoDisplay = escapeHTML(resultado);
 
     li.innerHTML = `
         <span>Jogador: <strong>${jogadaJogadorDisplay}</strong></span>
         <span>Computador: <strong>${jogadaComputadorDisplay}</strong></span>
-        <span>Resultado: <strong class="result-text">${resultado}</strong></span>
+        <span>Resultado: <strong class="result-text">${resultadoDisplay}</strong></span>
     `;
 
     historyList.prepend(li);
