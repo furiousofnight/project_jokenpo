@@ -1,44 +1,38 @@
-# fly.toml app configuration file generated for furious-jokenpo on 2025-04-24T22:54:08-03:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = "furious-jokenpo"
-primary_region = "gig"
+primary_region = "gru"
 kill_signal = "SIGINT"
 kill_timeout = "5s"
 
 [experimental]
-  auto_rollback = true
-
-# [build] # Removido - Fly.io usará o Dockerfile automaticamente se presente na raiz
+auto_rollback = true
 
 [env]
-  PORT = "8080"
+PORT = "8080"
+FLASK_ENV = "production"
+GUNICORN_CMD_ARGS = "--workers=2 --threads=4 --timeout=0"
 
 [[services]]
-  protocol = "tcp"
-  internal_port = 8080
+protocol = "tcp"
+internal_port = 8080
 
   [[services.ports]]
-    port = 80
-    handlers = ["http"]
+  port = 80
+  handlers = ["http"]
 
   [[services.ports]]
-    port = 443
-    handlers = ["tls", "http"]
+  port = 443
+  handlers = ["tls", "http"]
 
-  # Health check HTTP mais robusto
   [[services.http_checks]]
-    interval = "10s"
-    timeout = "5s"  # Aumente o timeout se necessário
-    grace_period = "5s"
-    method = "get"
-    path = "/ping"
-    protocol = "http"
-    tls_skip_verify = true
+  interval = "10s"
+  timeout = "5s"
+  grace_period = "5s"
+  method = "get"
+  path = "/ping"
+  protocol = "http"
+  tls_skip_verify = true
 
 [[vm]]
-  memory = "1gb"
-  cpu_kind = "shared"
-  cpus = 1
+memory = "1gb"
+cpu_kind = "shared"
+cpus = 1
