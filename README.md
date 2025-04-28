@@ -19,23 +19,25 @@ Este é um projeto web interativo do clássico jogo **Jokenpô** (Pedra, Papel e
 ## 📁 Estrutura do Projeto
 
 ```
-Project_JOKENPO/
-├── app.py                      # Servidor Flask principal
-├── requirements.txt           # Dependências do projeto
-├── Dockerfile                 # Containerização do app
-├── fly.toml                   # Configuração para deploy no Fly.io
-├── templates/
-│   └── index.html             # Interface principal (HTML)
+├Project_JOKENPO/
+├── app.py
 ├── static/
 │   ├── css/
-│   │   └── styles.css         # Estilização visual do jogo
-│   ├── js/
-│   │   └── script.js          # Lógica interativa (JS)
-│   └── images/                # Imagens dos botões (pedra, papel, tesoura)
-│       ├── rock.png
-│       ├── paper.png
-│       └── scissors.png
-```
+│   │   └── styles.css
+│   ├── images/
+│   │   └── example.png
+│   ├── sounds/
+│   │   ├── click.mp3
+│   │   ├── win.mp3
+│   │   ├── lose.mp3
+│   │   └── demais audios
+│   └── favicon.ico
+├── templates/
+│   └── index.html
+├── Dockerfile
+├── requirements.txt
+└── fly.toml
+
 
 ---
 

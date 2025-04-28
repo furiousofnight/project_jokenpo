@@ -1,8 +1,5 @@
 Project_JOKENPO/
 ├── app.py
-├── certs/                # (ou você pode ter os arquivos no mesmo diretório que app.py)
-│   ├── cert.pem
-│   └── key.pem
 ├── static/
 │   ├── css/
 │   │   └── styles.css
