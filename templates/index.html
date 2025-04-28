@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
+    <!-- REMOVIDO: meta CSP, pois Flask-Talisman já aplica via cabeçalho HTTP -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="Jogue JOKENPÔ (Pedra, Papel ou Tesoura) online contra o computador! Teste suas habilidades neste jogo clássico e divertido desenvolvido por FuriousOfNight.">
@@ -12,34 +12,30 @@
     <meta name="theme-color" content="#4A90E2">
     <meta property="og:title" content="JOKENPÔ - Pedra, Papel e Tesoura">
     <meta property="og:description" content="Jogue JOKENPÔ online contra o computador!">
-    <meta property="og:image" content="/static/images/og-image.jpg">
-
+    <meta property="og:image" content="{{ url_for('static', filename='images/og-image.jpg') }}">
     <title>JOKENPÔ - Pedra, Papel e Tesoura | FuriousOfNight</title>
     <!-- Preload de recursos críticos -->
-    <link rel="preload" href="/static/css/styles.css" as="style">
-    <link rel="preload" href="/static/js/scripts.js" as="script">
-    <link rel="preload" href="/static/sounds/background_music.mp3" as="audio">
+    <link rel="preload" href="{{ url_for('static', filename='css/styles.css') }}" as="style">
+    <link rel="preload" href="{{ url_for('static', filename='js/scripts.js') }}" as="script">
+    <link rel="preload" href="{{ url_for('static', filename='sounds/background_music.mp3') }}" as="audio">
     <!-- Estilos -->
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon.ico">
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon.ico') }}">
     <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
     <!-- Link de acessibilidade -->
     <a href="#main-game" class="skip-link">Pular para o conteúdo principal</a>
-
     <!-- Overlay de carregamento -->
     <div id="loading-overlay" class="loading-overlay" hidden>
         <div class="loading-spinner">Carregando...</div>
     </div>
     <!-- Mensagem de status offline -->
     <div id="offline-message" hidden role="alert">
-        Você está offline. Algumas funcionalidades podem não estar disponíveis.
+        Você está “offline”. Algumas funcionalidades podem não estar disponíveis.
     </div>
     <!-- Container para animação do JOKENPÔ -->
     <div id="jokenpo-animation" aria-hidden="true"></div>
@@ -74,8 +70,7 @@
                     <div class="stats-item"><span class="stats-label">Vitórias:</span> <strong>10</strong></div>
                     <div class="stats-item"><span class="stats-label">Derrotas:</span> <strong>5</strong></div>
                     <div class="stats-item"><span class="stats-label">Empates:</span> <strong>3</strong></div>
-                    <div class="stats-item"><span class="stats-label">Total de Partidas:</span> <strong>18</strong>
-                    </div>
+                    <div class="stats-item"><span class="stats-label">Total de Partidas:</span> <strong>18</strong></div>
                 </div>
             </section>
             <!-- Área de Escolha -->
@@ -83,15 +78,15 @@
                 <h3 id="stage-heading">Escolha a sua jogada:</h3>
                 <div class="choices">
                     <button class="btn-choice" data-choice="0" aria-label="Escolher Pedra" title="Escolher Pedra">
-                        <img src="/static/images/rock.png" alt="Pedra" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/rock.png') }}" alt="Pedra" loading="lazy">
                         <span class="btn-label">Pedra</span>
                     </button>
                     <button class="btn-choice" data-choice="1" aria-label="Escolher Papel" title="Escolher Papel">
-                        <img src="/static/images/paper.png" alt="Papel" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/paper.png') }}" alt="Papel" loading="lazy">
                         <span class="btn-label">Papel</span>
                     </button>
                     <button class="btn-choice" data-choice="2" aria-label="Escolher Tesoura" title="Escolher Tesoura">
-                        <img src="/static/images/scissors.png" alt="Tesoura" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/scissors.png') }}" alt="Tesoura" loading="lazy">
                         <span class="btn-label">Tesoura</span>
                     </button>
                 </div>
@@ -122,7 +117,7 @@
                     Desenvolvido por <strong>FURIOUSOFNIGHT</strong>.
                     Confira outras criações no
                     <a href="https://www.tiktok.com/@furiousofnightgames" target="_blank" rel="noopener noreferrer">
-                        Tiktok
+                        TikTok
                     </a>.
                 </p>
             </div>
@@ -131,35 +126,35 @@
     <!-- Container de Áudio -->
     <div id="audio-container" hidden>
         <audio id="click-sound" preload="auto">
-            <source src="/static/sounds/click.mp3" type="audio/mp3">
+            <source src="{{ url_for('static', filename='sounds/click.mp3') }}" type="audio/mp3">
             Seu navegador não suporta áudio.
         </audio>
         <audio id="win-sound" preload="auto">
-            <source src="/static/sounds/win.mp3" type="audio/mp3">
+            <source src="{{ url_for('static', filename='sounds/win.mp3') }}" type="audio/mp3">
             Seu navegador não suporta áudio.
         </audio>
         <audio id="lose-sound" preload="auto">
-            <source src="/static/sounds/lose.mp3" type="audio/mp3">
+            <source src="{{ url_for('static', filename='sounds/lose.mp3') }}" type="audio/mp3">
             Seu navegador não suporta áudio.
         </audio>
         <audio id="draw-sound" preload="auto">
-            <source src="/static/sounds/draw.mp3" type="audio/mp3">
+            <source src="{{ url_for('static', filename='sounds/draw.mp3') }}" type="audio/mp3">
             Seu navegador não suporta áudio.
         </audio>
         <audio id="final-win-sound" preload="auto">
-            <source src="/static/sounds/final_win.mp3" type="audio/mp3">
+            <source src="{{ url_for('static', filename='sounds/final_win.mp3') }}" type="audio/mp3">
             Seu navegador não suporta áudio.
         </audio>
         <audio id="final-lose-sound" preload="auto">
-            <source src="/static/sounds/final_lose.mp3" type="audio/mp3">
+            <source src="{{ url_for('static', filename='sounds/final_lose.mp3') }}" type="audio/mp3">
             Seu navegador não suporta áudio.
         </audio>
         <audio id="final-draw-sound" preload="auto">
-            <source src="/static/sounds/final_draw.mp3" type="audio/mp3">
+            <source src="{{ url_for('static', filename='sounds/final_draw.mp3') }}" type="audio/mp3">
             Seu navegador não suporta áudio.
         </audio>
         <audio id="background-music" loop preload="auto">
-            <source src="/static/sounds/background_music.mp3" type="audio/mp3">
+            <source src="{{ url_for('static', filename='sounds/background_music.mp3') }}" type="audio/mp3">
             Seu navegador não suporta áudio.
         </audio>
     </div>
@@ -178,7 +173,6 @@
     <!-- Mensagens de Feedback -->
     <div id="feedback-message" class="feedback-message" aria-live="polite" hidden></div>
     <!-- Scripts -->
-    <script src="/static/js/scripts.js" defer></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}" defer></script>
 </body>
-
 </html>

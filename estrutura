@@ -1,17 +1,21 @@
-   ├── app.py
-   ├── static/
-   │   ├── css/
-   │   │   └── styles.css
-   │   ├── images/
-   │   │   └── example.png
-   │   ├── sounds/
-   │   │   ├── click.mp3
-   │   │   ├── win.mp3
-   │   │   ├── lose.mp3
-   │   │   └── demais audios
-        favicon.ico
-   ├── templates/
-   │   └── index.html
-   ├── Dockerfile
-   ├── requirements.txt
-   └── fly.toml
+Project_JOKENPO/
+├── app.py
+├── certs/                # (ou você pode ter os arquivos no mesmo diretório que app.py)
+│   ├── cert.pem
+│   └── key.pem
+├── static/
+│   ├── css/
+│   │   └── styles.css
+│   ├── images/
+│   │   └── example.png
+│   ├── sounds/
+│   │   ├── click.mp3
+│   │   ├── win.mp3
+│   │   ├── lose.mp3
+│   │   └── demais audios
+│   └── favicon.ico
+├── templates/
+│   └── index.html
+├── Dockerfile
+├── requirements.txt
+└── fly.toml

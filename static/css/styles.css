@@ -4,7 +4,6 @@
     padding: 0;
     box-sizing: border-box;
 }
-
 html,
 body {
     font-family: 'Roboto', sans-serif;
@@ -16,13 +15,11 @@ body {
     display: flex;
     flex-direction: column;
 }
-
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 15px;
 }
-
 /* Cabeçalho */
 .main-header {
     text-align: center;
@@ -30,19 +27,16 @@ body {
     background: linear-gradient(135deg, #1e1e3c, #292959);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
-
 .main-header h1 {
     font-size: 3.6rem;
     font-weight: bold;
     background: linear-gradient(90deg, #ff007b, #ffda00);
     background-clip: text;
     -webkit-background-clip: text;
-    background-clip: text;
     color: transparent;
     text-shadow: 0 3px 8px rgba(255, 0, 123, 0.5);
     animation: glow 1.8s infinite alternate;
 }
-
 .main-header h2 {
     font-size: 2.4rem;
     font-weight: bold;
@@ -53,17 +47,14 @@ body {
     text-shadow: none;
     animation: glow 2s infinite alternate;
 }
-
 @keyframes glow {
     0% {
         text-shadow: 0 2px 10px rgba(255, 0, 123, 0.3);
     }
-
     100% {
         text-shadow: 0 4px 20px rgba(255, 0, 123, 0.7);
     }
 }
-
 /* Container Principal para o Jogo */
 .game-container {
     padding: 30px 15px;
@@ -74,7 +65,6 @@ body {
     background: linear-gradient(135deg, rgba(30, 30, 60, 0.85), rgba(45, 45, 90, 0.95));
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
 }
-
 /* Instruções */
 .instructions p {
     font-size: 1.4rem;
@@ -87,7 +77,6 @@ body {
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-
 /* Seção de Placar */
 .game-score {
     margin: 20px auto;
@@ -99,7 +88,6 @@ body {
     color: #ffffff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
-
 .game-score span {
     display: inline-block;
     margin: 0 15px;
@@ -109,7 +97,6 @@ body {
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-
 .game-score strong {
     font-size: 1.6rem;
     font-weight: bold;
@@ -118,7 +105,6 @@ body {
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-
 /* Botões de Escolha do Jogo */
 .choices {
     display: flex;
@@ -126,7 +112,6 @@ body {
     flex-wrap: wrap;
     gap: 25px;
 }
-
 .btn-choice {
     display: flex;
     flex-direction: column;
@@ -144,31 +129,25 @@ body {
     box-shadow: 0 4px 15px rgba(255, 0, 180, 0.5);
     text-align: center;
 }
-
 .btn-choice:hover {
     transform: translateY(-5%);
     background: linear-gradient(135deg, #782efb, #ff007b);
     box-shadow: 0 6px 20px rgba(255, 0, 180, 0.8);
 }
-
 .btn-choice img {
     width: 55px;
     height: 55px;
     margin-bottom: 10px;
 }
-
 .btn-choice:hover img {
     transform: scale(1.1);
     filter: brightness(1.2);
 }
-
 .btn-choice.clicked {
     transform: scale(0.9);
     box-shadow: 0 3px 10px rgba(50, 50, 92, 0.6);
 }
-
 /* Resultados & Mensagens Finais */
-/* Melhor visual para a janela de resultados */
 .result-display {
     margin: 24px auto 0 auto;
     padding: 18px 28px;
@@ -186,7 +165,6 @@ body {
     animation: fadeIn 0.7s;
     position: relative;
 }
-
 .result-display::before {
     content: "";
     position: absolute;
@@ -196,7 +174,6 @@ body {
     z-index: 0;
     pointer-events: none;
 }
-
 .result-display p {
     position: relative;
     z-index: 1;
@@ -212,33 +189,64 @@ body {
     padding: 0;
     line-height: 1.3;
 }
-
 /* Mensagem Final de Jogo */
 .final-message {
-    padding: 25px;
-    font-size: 1.8rem;
-    font-weight: bold;
+    padding: 24px 18px 18px 18px;
+    font-size: 1.25rem;
+    font-weight: 600;
     color: #ffe600;
-    background: linear-gradient(135deg, #292b6e, #6456d8, #9854a6);
-    border-radius: 15px;
-    border: 3px solid #ff9f00;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    background: rgba(34, 32, 60, 0.96);
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 8px 32px 0 rgba(255, 0, 123, 0.13), 0 2px 8px rgba(0, 0, 0, 0.18);
     text-align: center;
-    animation: fadeIn 0.8s ease-in-out;
-
+    animation: fadeIn 0.7s;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-
-    max-width: 700px;
-    margin: 20px auto;
+    max-width: 350px;
+    margin: 32px auto 0 auto;
+    position: relative;
+    gap: 10px;
+    overflow: hidden;
+    border-bottom: 3px solid #ff007b;
 }
-
+.final-message::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(120deg, rgba(255, 0, 123, 0.08) 0%, rgba(0, 204, 255, 0.10) 100%);
+    z-index: 0;
+    pointer-events: none;
+}
+.final-message * {
+    position: relative;
+    z-index: 1;
+}
+.final-message h2#final-result-text {
+    font-size: 1.35rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #ff007b, #ffe600, #00ccff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+    text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.13);
+    line-height: 1.3;
+}
+.final-message p {
+    font-size: 1.08rem;
+    color: #fffbe6;
+    margin: 0 0 8px 0;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
+}
 .final-message button {
-    margin-top: 20px;
+    margin-top: 10px;
     padding: 12px 30px;
-    font-size: 1.2rem;
+    font-size: 1.13rem;
     font-weight: bold;
     color: #ffffff;
     background: linear-gradient(135deg, #ff007b, #ffa600);
@@ -248,17 +256,32 @@ body {
     box-shadow: 0 4px 12px rgba(255, 0, 123, 0.6);
     transition: all 0.3s ease-in-out;
 }
-
 .final-message button:hover {
     transform: scale(1.1);
     background: linear-gradient(135deg, #ff5b87, #ffcc40);
-    box-shadow: 0px 6px 20px rgba(255, 28, 133, 0.8);
+    box-shadow: 0 6px 20px rgba(255, 28, 133, 0.8);
 }
-
-/* Histórico - visual moderno, alinhado e integrado ao padrão do layout */
+@media (max-width: 480px) {
+    .final-message {
+        max-width: 96vw;
+        padding: 14px 4vw 10px 4vw;
+        font-size: 1rem;
+    }
+    .final-message h2#final-result-text {
+        font-size: 1.08rem;
+    }
+    .final-message p {
+        font-size: 0.97rem;
+    }
+    .final-message button {
+        font-size: 1rem;
+        padding: 10px 18px;
+    }
+}
+/* Histórico */
 .history ul {
     margin-top: 20px;
-    padding: 18px 10px 18px 10px;
+    padding: 18px 10px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -266,12 +289,10 @@ body {
     overflow-y: auto;
     background: rgba(34, 32, 60, 0.92);
     border-radius: 18px;
-    border: none;
     box-shadow: 0 6px 24px rgba(255, 0, 123, 0.10), 0 2px 8px rgba(0, 0, 0, 0.13);
     backdrop-filter: blur(6px);
     position: relative;
 }
-
 .history ul::before {
     content: "";
     position: absolute;
@@ -281,7 +302,6 @@ body {
     z-index: 0;
     pointer-events: none;
 }
-
 .history li {
     position: relative;
     padding: 12px 18px;
@@ -299,34 +319,25 @@ body {
     transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
     z-index: 1;
 }
-
 .history li.history-win {
     border-left: 4px solid #00ff99;
     background: rgba(0, 255, 153, 0.07);
 }
-
 .history li.history-lose {
     border-left: 4px solid #ff3b3b;
     background: rgba(255, 59, 59, 0.07);
 }
-
 .history li.history-draw {
     border-left: 4px solid #ffe600;
     background: rgba(255, 230, 0, 0.07);
 }
-
 .history li:hover {
     background: rgba(255, 0, 123, 0.10);
     box-shadow: 0 2px 8px rgba(255, 0, 123, 0.10);
 }
-
 .history li span {
     font-size: 1.05rem;
     font-weight: 500;
-    background: none;
-    -webkit-background-clip: initial;
-    background-clip: initial;
-    -webkit-text-fill-color: initial;
     color: #ffe600;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
     margin-right: 8px;
@@ -334,7 +345,6 @@ body {
     align-items: center;
     gap: 2px;
 }
-
 .history li .result-text {
     font-weight: bold;
     font-size: 1.08em;
@@ -348,13 +358,11 @@ body {
     -webkit-text-fill-color: transparent;
     text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.13);
 }
-
 @media (max-width: 480px) {
     .history ul {
         padding: 10px 2vw;
         max-height: 220px;
     }
-
     .history li {
         flex-direction: column;
         align-items: flex-start;
@@ -362,20 +370,17 @@ body {
         padding: 10px 8px;
         font-size: 0.97rem;
     }
-
     .history li span {
         font-size: 0.97rem;
         margin-right: 0;
     }
 }
-
-/* Estatísticas - visual moderno, clean e integrado ao restante do layout */
+/* Estatísticas */
 #stats-display {
     margin: 28px auto 20px;
     padding: 22px 28px 16px 28px;
     background: rgba(34, 32, 60, 0.92);
     border-radius: 20px;
-    border: none;
     font-size: 1.1rem;
     color: #ffe600;
     text-align: center;
@@ -389,7 +394,6 @@ body {
     overflow: hidden;
     border-bottom: 3px solid #ff007b;
 }
-
 #stats-display::before {
     content: "";
     position: absolute;
@@ -399,12 +403,10 @@ body {
     z-index: 0;
     pointer-events: none;
 }
-
 #stats-display * {
     position: relative;
     z-index: 1;
 }
-
 #stats-display h3,
 #stats-display p.title {
     font-size: 1.18rem;
@@ -414,11 +416,9 @@ body {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    color: transparent;
     letter-spacing: 1px;
     text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.13);
 }
-
 #stats-display .stats-list {
     display: flex;
     flex-direction: column;
@@ -427,7 +427,6 @@ body {
     margin: 0 auto;
     padding: 0;
 }
-
 #stats-display .stats-item {
     width: 100%;
     display: flex;
@@ -441,44 +440,37 @@ body {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     transition: background 0.2s, box-shadow 0.2s;
 }
-
 #stats-display .stats-item strong {
     color: #ffe600;
     font-weight: bold;
     font-size: 1.08em;
     letter-spacing: 0.5px;
 }
-
 #stats-display .stats-label {
     color: #ffb300;
     font-weight: 500;
     font-size: 1em;
     margin-right: 4px;
 }
-
 #stats-display .stats-item:hover {
     background: rgba(255, 0, 123, 0.10);
     box-shadow: 0 2px 8px rgba(255, 0, 123, 0.10);
 }
-
 @media (max-width: 480px) {
     #stats-display {
         width: 98vw;
         padding: 14px 3vw 8px 3vw;
         font-size: 1rem;
     }
-
     #stats-display h3,
     #stats-display p.title {
         font-size: 1.05rem;
     }
-
     #stats-display .stats-item {
         font-size: 0.97rem;
         padding: 6px 8px;
     }
 }
-
 /* Rodapé */
 .site-footer {
     text-align: center;
@@ -490,53 +482,44 @@ body {
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5);
     margin-top: auto;
 }
-
 .site-footer a {
     text-decoration: none;
     color: #ffa600;
     font-weight: bold;
     transition: color 0.3s ease;
 }
-
 .site-footer a:hover {
     color: #ff007b;
 }
-
-/* Scroll personalizado */
+/* Scroll personalizado para o histórico */
 .history ul::-webkit-scrollbar {
     width: 8px;
 }
-
 .history ul::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, #ff7200, #ff46b2);
     border-radius: 10px;
 }
-
 /* Animações */
 @keyframes popUp {
     0% {
         opacity: 0;
         transform: scale(0.85);
     }
-
     100% {
         opacity: 1;
         transform: scale(1);
     }
 }
-
 @keyframes fadeIn {
     from {
         opacity: 0;
         transform: scale(0.9);
     }
-
     to {
         opacity: 1;
         transform: scale(1);
     }
 }
-
 /* Estilos para a animação de JoKenPo */
 #jokenpo-animation {
     position: fixed;
@@ -554,23 +537,19 @@ body {
     pointer-events: none;
     transition: opacity 0.3s ease;
 }
-
 #jokenpo-animation.active {
     opacity: 1;
     pointer-events: auto;
     animation: pulseBackground 1.5s infinite alternate;
 }
-
 @keyframes pulseBackground {
     0% {
         background-color: rgba(0, 0, 0, 0.85);
     }
-
     100% {
         background-color: rgba(41, 10, 89, 0.85);
     }
 }
-
 .symbol-container {
     display: flex;
     justify-content: center;
@@ -578,7 +557,6 @@ body {
     gap: 20px;
     margin-bottom: 30px;
 }
-
 .jokenpo-symbol {
     font-size: 80px;
     background: linear-gradient(135deg, #282863, #513d96);
@@ -593,24 +571,20 @@ body {
     transition: transform 0.2s ease;
     border: 3px solid #ff007b;
 }
-
 .jokenpo-symbol.highlight {
     transform: scale(1.2);
     animation: pulseGlow 1s infinite alternate;
     border: 4px solid gold;
     background: linear-gradient(135deg, #782efb, #ff007b);
 }
-
 @keyframes pulseGlow {
     0% {
         box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
     }
-
     100% {
         box-shadow: 0 0 35px rgba(255, 215, 0, 0.9);
     }
 }
-
 .vs-text {
     font-size: 60px;
     font-weight: bold;
@@ -619,26 +593,22 @@ body {
     margin: 0 20px;
     animation: pulsateVS 1s infinite alternate;
 }
-
 @keyframes pulsateVS {
     0% {
         opacity: 0.7;
         transform: scale(0.9);
     }
-
     100% {
         opacity: 1;
         transform: scale(1.1);
     }
 }
-
 .player-choice,
 .computer-choice {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
-
 .choice-label {
     color: white;
     font-size: 28px;
@@ -650,7 +620,6 @@ body {
     -webkit-text-fill-color: transparent;
     font-weight: bold;
 }
-
 .countdown {
     font-size: 100px;
     color: white;
@@ -659,35 +628,28 @@ body {
     text-shadow: 0 0 30px rgba(255, 0, 123, 0.9);
     animation: countdownPulse 1s infinite alternate;
 }
-
 @keyframes countdownPulse {
     0% {
         transform: scale(1);
     }
-
     50% {
         transform: scale(1.1);
     }
-
     100% {
         transform: scale(1);
     }
 }
-
 .computer-symbol {
     animation: rotateSymbol 0.5s infinite alternate;
 }
-
 @keyframes rotateSymbol {
     0% {
         transform: rotate(-5deg);
     }
-
     100% {
         transform: rotate(5deg);
     }
 }
-
 /* Controle de música */
 .music-control {
     position: fixed;
@@ -695,7 +657,6 @@ body {
     right: 20px;
     z-index: 1000;
 }
-
 .music-btn {
     width: 50px;
     height: 50px;
@@ -711,95 +672,76 @@ body {
     justify-content: center;
     align-items: center;
 }
-
 .music-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(255, 0, 123, 0.8);
 }
-
 .music-btn.muted .music-icon {
     opacity: 0.5;
 }
-
 /* Responsividade */
 @media (max-width: 768px) {
     .game-container {
         padding: 20px 10px;
     }
-
     .btn-choice {
         width: 100px;
         height: 100px;
     }
-
     #stats-display {
         width: 90%;
     }
-
     .game-score span,
     .game-score strong {
         font-size: 1.2rem;
     }
-
     .result-display {
         font-size: 1.8rem;
         padding: 20px;
     }
-
     .site-footer {
         font-size: 0.9rem;
     }
-
     .jokenpo-symbol {
         width: 100px;
         height: 100px;
         font-size: 50px;
     }
-
     .vs-text {
         font-size: 40px;
     }
-
     .choice-label {
         font-size: 20px;
     }
-
     .countdown {
         font-size: 70px;
         margin-top: 20px;
     }
-
     .music-btn {
         width: 40px;
         height: 40px;
         font-size: 18px;
     }
 }
-
 @media (max-width: 480px) {
     .jokenpo-symbol {
         width: 80px;
         height: 80px;
         font-size: 40px;
     }
-
     .vs-text {
         font-size: 30px;
         margin: 0 10px;
     }
-
     .choice-label {
         font-size: 16px;
     }
-
     .countdown {
         font-size: 60px;
     }
-
     .symbol-container {
         gap: 10px;
     }
-
     .main-header h1 {
         font-size: 2.2rem;
         padding: 0 5px;
@@ -807,28 +749,23 @@ body {
         word-break: keep-all;
         overflow-wrap: break-word;
     }
-
     .main-header h2 {
         font-size: 1.6rem;
     }
-
     .btn-choice {
         width: 80px;
         height: 80px;
     }
-
     .btn-choice img {
         width: 40px;
         height: 40px;
     }
-
     .history li {
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
         padding: 10px;
     }
-
     .music-btn {
         width: 35px;
         height: 35px;
@@ -837,66 +774,53 @@ body {
         right: 15px;
     }
 }
-
 @media (max-width: 360px) {
     .main-header h1 {
         font-size: 1.9rem;
         letter-spacing: -1px;
     }
-
     .main-header h2 {
         font-size: 1.4rem;
     }
-
     .main-header {
         padding: 15px 5px;
     }
 }
-
 @media (max-height: 600px) and (orientation: landscape) {
     .symbol-container {
         flex-direction: row;
         margin-bottom: 10px;
     }
-
     .jokenpo-symbol {
         width: 80px;
         height: 80px;
         font-size: 40px;
     }
-
     .countdown {
         font-size: 50px;
         margin-top: 10px;
     }
-
     .choice-label {
         font-size: 16px;
         margin-bottom: 5px;
     }
-
     .music-control {
         bottom: 10px;
         right: 10px;
     }
 }
-
 @media (prefers-reduced-motion: reduce) {
-
     .jokenpo-symbol,
     .vs-text,
     .countdown {
         animation: none !important;
     }
-
     #jokenpo-animation.active {
         animation: none !important;
     }
-
     .computer-symbol {
         animation: none !important;
     }
-
     .music-btn,
     .music-btn:hover {
         transition: none !important;
@@ -904,7 +828,6 @@ body {
         transform: none !important;
     }
 }
-
 /* Mensagem rápida animada */
 #quick-result {
     position: fixed;
@@ -922,42 +845,34 @@ body {
     text-transform: uppercase;
     letter-spacing: 5px;
 }
-
 #quick-result.win {
     color: #00ff00;
     text-shadow: 0 0 30px #00ff00, 0 0 60px #00ff00;
 }
-
 #quick-result.lose {
     color: #ff0000;
     text-shadow: 0 0 30px #ff0000, 0 0 60px #ff0000;
 }
-
 #quick-result.draw {
     color: #ffff00;
     text-shadow: 0 0 30px #ffff00, 0 0 60px #ffff00;
 }
-
 @keyframes bounceInOut {
     0% {
         opacity: 0;
         transform: translate(-50%, -60%) scale(0.8);
     }
-
     20% {
         opacity: 1;
         transform: translate(-50%, -50%) scale(1.2);
     }
-
     50% {
         transform: translate(-50%, -50%) scale(1);
     }
-
     80% {
         opacity: 1;
         transform: translate(-50%, -50%) scale(1.1);
     }
-
     100% {
         opacity: 0;
         transform: translate(-50%, -40%) scale(0.9);

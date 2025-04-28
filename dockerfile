@@ -1,39 +1,26 @@
 # 📦 Imagem base otimizada do Python
 FROM python:3.13-slim
-
-# 🌍 Define variáveis de ambiente (evita mensagens de aviso do pip e garante saída não bufferizada)
+# 🌍 Define variáveis de ambiente para evitar a escrita de arquivos de bytecode e garantir saída não bufferizada
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-
-# 🗂️ Define o diretório de trabalho dentro do container
+# 🗂️ Configura o diretório de trabalho dentro do container
 WORKDIR /app
-
 # 📄 Copia o arquivo de dependências
 COPY requirements.txt .
-
-# 🔧 Instala dependências do projeto
-# (Opcional: Instalar como root para ter permissões globais, antes de criar o usuário)
+# 🔧 Instala as dependências definidas no requirements.txt, sem cache para manter a imagem enxuta
 RUN pip install --no-cache-dir -r requirements.txt
-
-# 👤 Cria um usuário e grupo não-root para rodar a aplicação
+# 👤 Cria um usuário e grupo não-root para rodar a aplicação com segurança
 RUN addgroup --system app && adduser --system --ingroup app app
-
-# 📁 Copia todos os arquivos da aplicação para o container
-# (Certifique-se de ter um .dockerignore para não copiar arquivos desnecessários)
+# 📁 Copia todos os arquivos da aplicação para dentro do container
 COPY . .
-
-# 🔒 Muda a propriedade dos arquivos para o usuário 'app'
+# 🔒 Ajusta a propriedade dos arquivos para o usuário 'app'
 RUN chown -R app:app /app
-
-# 👤 Muda para o usuário não-root
+# 👤 Altera para o usuário não-root para maior segurança
 USER app
-
-# 🌐 Define a variável de ambiente padrão da porta (já definida pelo usuário 'app')
+# 🌐 Define a variável de ambiente padrão da porta
 ENV PORT=8080
-
-# 📡 Expõe a porta usada pelo Gunicorn
+# 📡 Expõe a porta 8080 (usada pelo Gunicorn)
 EXPOSE 8080
-
-# 🚀 Comando de inicialização do servidor com Gunicorn (executado como usuário 'app')
-# (Considere adicionar -w <num_workers>, ex: -w 4, para melhor performance)
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
+# 🚀 Comando de inicialização do servidor com Gunicorn,
+# definindo a vinculação, número de workers, threads e timeout conforme necessário
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4", "--timeout", "0", "app:app"]

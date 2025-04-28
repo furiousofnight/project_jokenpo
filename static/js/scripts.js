@@ -40,7 +40,7 @@ const OFFLINE_MESSAGE = "Você está offline. Algumas funcionalidades podem não
 const RESULTADO_JOGADOR_GANHOU = "O JOGADOR GANHOU!";
 const RESULTADO_COMPUTADOR_GANHOU = "O COMPUTADOR GANHOU!";
 const RESULTADO_EMPATE = "EMPATE!";
-// Mapeamentos
+// Mapeamentos e símbolos do jogo
 const ITENS_JOGO = ['Pedra', 'Papel', 'Tesoura'];
 const JOGADA_PARA_INDICE = {
     "pedra": 0,
@@ -76,17 +76,35 @@ const sounds = {
     finalLose: new Audio('/static/sounds/final_lose.mp3'),
     finalDraw: new Audio('/static/sounds/final_draw.mp3')
 };
+// ================== Segurança: Função para escapar HTML ==================
+function escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    const replacements = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return str.replace(/[&<>"']/g, match => replacements[match]);
+}
 // ================== Funções de Utilidade ==================
 function showLoadingOverlay(show) {
-    loadingOverlay.hidden = !show;
+    if (loadingOverlay) {
+        loadingOverlay.hidden = !show;
+    }
 }
 function showFeedback(message, type = 'error') {
-    feedbackMessage.textContent = message;
-    feedbackMessage.className = `feedback-message ${type}`;
-    feedbackMessage.hidden = false;
-    setTimeout(() => {
-        feedbackMessage.hidden = true;
-    }, 3000);
+    if (feedbackMessage) {
+        feedbackMessage.textContent = message;
+        feedbackMessage.className = `feedback-message ${type}`;
+        feedbackMessage.hidden = false;
+        setTimeout(() => {
+            feedbackMessage.hidden = true;
+        }, 3000);
+    } else {
+        console.warn("Elemento de feedback não encontrado.");
+    }
 }
 function updateGameState(newState) {
     currentGameState = newState;
@@ -94,16 +112,16 @@ function updateGameState(newState) {
 }
 // ================== Funções de Música e Som ==================
 function initBackgroundMusic() {
+    if (!backgroundMusic || !toggleMusicBtn) return;
     const musicState = localStorage.getItem('musicEnabled');
     backgroundMusic.volume = VOLUME_MUSICA_NORMAL;
     const musicIcon = toggleMusicBtn.querySelector('.music-icon');
-
     if (musicState === 'false') {
-        musicIcon.textContent = '🔈';
+        if (musicIcon) musicIcon.textContent = '🔈';
         toggleMusicBtn.classList.add('muted');
         isMusicPlaying = false;
     } else {
-        musicIcon.textContent = '🔊';
+        if (musicIcon) musicIcon.textContent = '🔊';
         isMusicPlaying = true;
         const startMusicHandler = () => {
             backgroundMusic.play().catch(err => console.warn('Interação do usuário necessária para tocar música:', err));
@@ -111,26 +129,26 @@ function initBackgroundMusic() {
         };
         document.addEventListener('click', startMusicHandler, { once: true });
     }
-
     toggleMusicBtn.addEventListener('click', toggleBackgroundMusic);
 }
 function toggleBackgroundMusic() {
+    if (!backgroundMusic || !toggleMusicBtn) return;
     const musicIcon = toggleMusicBtn.querySelector('.music-icon');
     if (isMusicPlaying) {
         backgroundMusic.pause();
-        musicIcon.textContent = '🔈';
+        if (musicIcon) musicIcon.textContent = '🔈';
         toggleMusicBtn.classList.add('muted');
         localStorage.setItem('musicEnabled', 'false');
     } else {
         backgroundMusic.play().catch(err => console.error('Falha ao tocar música:', err));
-        musicIcon.textContent = '🔊';
+        if (musicIcon) musicIcon.textContent = '🔊';
         toggleMusicBtn.classList.remove('muted');
         localStorage.setItem('musicEnabled', 'true');
     }
     isMusicPlaying = !isMusicPlaying;
 }
 function playGameSound(sound) {
-    if (!sound) return;
+    if (!sound || !backgroundMusic) return;
     const currentMusicVolume = backgroundMusic.volume;
     if (isMusicPlaying) {
         backgroundMusic.volume = VOLUME_MUSICA_REDUZIDO;
@@ -165,9 +183,9 @@ function displayTotalStats() {
     if (statsDisplayElement) {
         statsDisplayElement.innerHTML = `
             <p><strong>Estatísticas Gerais:</strong></p>
-            <p>Vitórias: ${storageStats.vitorias}</p>
-            <p>Derrotas: ${storageStats.derrotas}</p>
-            <p>Empates: ${storageStats.empates}</p>
+            <p>Vitórias: ${escapeHTML(storageStats.vitorias.toString())}</p>
+            <p>Derrotas: ${escapeHTML(storageStats.derrotas.toString())}</p>
+            <p>Empates: ${escapeHTML(storageStats.empates.toString())}</p>
         `;
     }
 }
@@ -178,22 +196,26 @@ function setLoadingState(isLoading) {
         button.disabled = isLoading;
         button.classList.toggle('loading', isLoading);
     });
-    if (isLoading) {
-        resultDisplay.innerHTML = '<span class="loading-text">Processando...</span>';
-        resultDisplay.classList.add('loading');
-    } else {
-        resultDisplay.classList.remove('loading');
+    if (resultDisplay) {
+        if (isLoading) {
+            resultDisplay.innerHTML = '<span class="loading-text">Processando...</span>';
+            resultDisplay.classList.add('loading');
+        } else {
+            resultDisplay.classList.remove('loading');
+        }
     }
 }
 function displayTemporaryError(message) {
-    resultDisplay.innerHTML = `<span class="error">Erro: ${message}</span>`;
-    resultDisplay.classList.add('error');
-    setTimeout(() => {
-        if (resultDisplay.classList.contains('error')) {
-            resultDisplay.innerHTML = "Tente novamente!";
-            resultDisplay.classList.remove('error');
-        }
-    }, 4000);
+    if (resultDisplay) {
+        resultDisplay.innerHTML = `<span class="error">Erro: ${escapeHTML(message)}</span>`;
+        resultDisplay.classList.add('error');
+        setTimeout(() => {
+            if (resultDisplay.classList.contains('error')) {
+                resultDisplay.textContent = "Tente novamente!";
+                resultDisplay.classList.remove('error');
+            }
+        }, 4000);
+    }
 }
 function initializeGame() {
     placar = { jogador: 0, computador: 0, empates: 0 };
@@ -201,23 +223,21 @@ function initializeGame() {
     ultimoJogador = null;
     updateGameState(GameState.PLAYING);
     setLoadingState(false);
-
-    playerScoreDisplay.textContent = placar.jogador;
-    computerScoreDisplay.textContent = placar.computador;
-    attemptsDisplay.textContent = tentativasRestantes;
-    historyList.innerHTML = '';
-    resultDisplay.textContent = "Faça sua jogada!";
-    resultDisplay.className = 'result-display';
-
+    if (playerScoreDisplay) playerScoreDisplay.textContent = placar.jogador;
+    if (computerScoreDisplay) computerScoreDisplay.textContent = placar.computador;
+    if (attemptsDisplay) attemptsDisplay.textContent = tentativasRestantes;
+    if (historyList) historyList.innerHTML = '';
+    if (resultDisplay) {
+        resultDisplay.textContent = "Faça sua jogada!";
+        resultDisplay.className = 'result-display';
+    }
     if (finalMessageElement) {
         finalMessageElement.style.display = 'none';
     }
-
     btnChoices.forEach(button => {
         button.disabled = false;
         button.classList.remove('clicked', 'loading');
     });
-
     displayTotalStats();
 }
 // ================== Funções de Interface do Jogo ==================
@@ -227,14 +247,18 @@ function updateResultDisplay(resultado, jogadaComputador) {
         [RESULTADO_COMPUTADOR_GANHOU]: "Oh não! O computador venceu essa. 🤖",
         [RESULTADO_EMPATE]: "Foi um empate! Equilíbrio total! 😯"
     };
-    const jogadaComputadorDisplay = jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1);
-    resultDisplay.innerHTML = `
-        <div class="animated-message">
-            <p>Computador escolheu: <strong>${jogadaComputadorDisplay}</strong></p>
-            <p>${messagesByResult[resultado] || resultado}</p>
-        </div>
-    `;
-    resultDisplay.classList.remove('loading', 'error');
+    const jogadaComputadorDisplay = escapeHTML(
+        jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1)
+    );
+    if (resultDisplay) {
+        resultDisplay.innerHTML = `
+            <div class="animated-message">
+                <p>Computador escolheu: <strong>${jogadaComputadorDisplay}</strong></p>
+                <p>${escapeHTML(messagesByResult[resultado] || resultado)}</p>
+            </div>
+        `;
+        resultDisplay.classList.remove('loading', 'error');
+    }
     switch (resultado) {
         case RESULTADO_JOGADOR_GANHOU:
             playGameSound(sounds.win);
@@ -246,13 +270,12 @@ function updateResultDisplay(resultado, jogadaComputador) {
             playGameSound(sounds.draw);
             break;
     }
-
     showQuickResultMessage(resultado);
 }
 function addToHistory(resultado, jogadaJogador, jogadaComputador) {
+    if (!historyList) return;
     const li = document.createElement('li');
     let resultadoClasse = '';
-
     if (resultado === RESULTADO_JOGADOR_GANHOU) {
         resultadoClasse = 'history-win';
     } else if (resultado === RESULTADO_COMPUTADOR_GANHOU) {
@@ -260,17 +283,19 @@ function addToHistory(resultado, jogadaJogador, jogadaComputador) {
     } else {
         resultadoClasse = 'history-draw';
     }
-
     li.classList.add(resultadoClasse);
-    const jogadaJogadorDisplay = jogadaJogador.charAt(0).toUpperCase() + jogadaJogador.slice(1);
-    const jogadaComputadorDisplay = jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1);
-
+    const jogadaJogadorDisplay = escapeHTML(
+        jogadaJogador.charAt(0).toUpperCase() + jogadaJogador.slice(1)
+    );
+    const jogadaComputadorDisplay = escapeHTML(
+        jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1)
+    );
+    const resultadoDisplay = escapeHTML(resultado);
     li.innerHTML = `
         <span>Jogador: <strong>${jogadaJogadorDisplay}</strong></span>
         <span>Computador: <strong>${jogadaComputadorDisplay}</strong></span>
-        <span>Resultado: <strong class="result-text">${resultado}</strong></span>
+        <span>Resultado: <strong class="result-text">${resultadoDisplay}</strong></span>
     `;
-
     historyList.prepend(li);
     while (historyList.children.length > HISTORY_LIMIT) {
         historyList.removeChild(historyList.lastChild);
@@ -284,11 +309,10 @@ function updateScore(resultado) {
     } else if (resultado === RESULTADO_EMPATE) {
         placar.empates++;
     }
-
     tentativasRestantes = Math.max(tentativasRestantes - 1, 0);
-    playerScoreDisplay.textContent = placar.jogador;
-    computerScoreDisplay.textContent = placar.computador;
-    attemptsDisplay.textContent = tentativasRestantes;
+    if (playerScoreDisplay) playerScoreDisplay.textContent = placar.jogador;
+    if (computerScoreDisplay) computerScoreDisplay.textContent = placar.computador;
+    if (attemptsDisplay) attemptsDisplay.textContent = tentativasRestantes;
 }
 function getRandomMessage(messages) {
     if (!messages || messages.length === 0) return "Fim de Jogo!";
@@ -300,7 +324,6 @@ function checkForGameEnd() {
         let statusFinal = "empate";
         let finalSound = sounds.finalDraw;
         let buttonText = "Jogar Novamente";
-
         const winMessages = [
             "VITÓRIA! Você leu a mente do computador ou só deu sorte? 🤔🏆",
             "CAMPEÃO! O computador já pediu a revanche! 🎉",
@@ -310,7 +333,6 @@ function checkForGameEnd() {
             "PERFEITO! Nem a IA mais avançada te pararia! ✨",
             "UAU! Essa vitória foi mais bonita que um código sem bugs! 😉"
         ];
-
         const loseMessages = [
             "DERROTA! A Skynet mandou lembranças... 🤖",
             "OPS! O computador previu seus movimentos! 📟",
@@ -320,7 +342,6 @@ function checkForGameEnd() {
             "GAME OVER! O computador riu em binário! 01101000 01100001! 😂",
             "MELHOR SORTE NA PRÓXIMA! Ou use Pedra, todo mundo usa Pedra... 🗿"
         ];
-
         const drawMessages = [
             "EMPATE! Conexão mental com a máquina? Bizarro! 🤷",
             "IGUAIS! Ninguém levou, mas a emoção foi real! 👏",
@@ -349,7 +370,6 @@ function checkForGameEnd() {
         if (finalMessageElement && finalResultTextElement && totalEmpatesElement) {
             finalResultTextElement.textContent = finalText;
             totalEmpatesElement.textContent = placar.empates;
-
             const playAgainBtn = document.getElementById('play-again');
             if (playAgainBtn) {
                 playAgainBtn.textContent = buttonText;
@@ -358,7 +378,6 @@ function checkForGameEnd() {
             }
             finalMessageElement.style.display = 'flex';
         }
-
         updateLocalStorage(statusFinal);
         btnChoices.forEach(button => button.disabled = true);
     }
@@ -385,12 +404,9 @@ function showJokenpoAnimation(jogadorChoiceIndex, jogadaComputadorTexto, onAnima
     const computerSymbolElement = animationContainer.querySelector('.computer-symbol');
     const countdownElement = animationContainer.querySelector('.countdown');
     const playerSymbolElement = animationContainer.querySelector('.player-symbol');
-
     playerSymbolElement.classList.add('highlight');
-
     let secondsLeft = 3;
     let symbolShuffleIndex = 0;
-
     const shuffleInterval = setInterval(() => {
         symbolShuffleIndex = (symbolShuffleIndex + 1) % SIMBOLOS_JOGO.length;
         computerSymbolElement.textContent = SIMBOLOS_JOGO[symbolShuffleIndex];
@@ -398,13 +414,11 @@ function showJokenpoAnimation(jogadorChoiceIndex, jogadaComputadorTexto, onAnima
     const countdownInterval = setInterval(() => {
         secondsLeft--;
         countdownElement.textContent = secondsLeft > 0 ? secondsLeft : "Já!";
-
         if (secondsLeft <= 0) {
             clearInterval(countdownInterval);
             clearInterval(shuffleInterval);
             computerSymbolElement.textContent = computerFinalSymbol;
             computerSymbolElement.classList.add('highlight');
-
             setTimeout(() => {
                 animationContainer.classList.remove('active', 'animating');
                 if (typeof onAnimationEnd === 'function') onAnimationEnd();
@@ -436,7 +450,6 @@ async function checkApiHealth() {
 }
 async function sendChoiceToServer(jogadorChoiceIndex) {
     if (isWaiting || tentativasRestantes <= 0) return;
-
     setLoadingState(true);
     playGameSound(sounds.click);
     try {
@@ -460,12 +473,10 @@ async function sendChoiceToServer(jogadorChoiceIndex) {
         }
         const data = await response.json();
         ultimoJogador = jogadorChoiceIndex;
-
         showJokenpoAnimation(jogadorChoiceIndex, data.jogada_computador, () => {
             updateResultDisplay(data.resultado, data.jogada_computador);
             addToHistory(data.resultado, ITENS_JOGO[jogadorChoiceIndex], data.jogada_computador);
             updateScore(data.resultado);
-
             setTimeout(() => {
                 setLoadingState(false);
                 checkForGameEnd();
@@ -479,10 +490,8 @@ async function sendChoiceToServer(jogadorChoiceIndex) {
 }
 function showQuickResultMessage(resultado) {
     if (!quickResultElement) return;
-
     let text = "";
     let className = "";
-
     if (resultado === RESULTADO_JOGADOR_GANHOU) {
         text = "WIN";
         className = "win";
@@ -493,11 +502,9 @@ function showQuickResultMessage(resultado) {
         text = "DRAW";
         className = "draw";
     }
-
     quickResultElement.textContent = text;
     quickResultElement.className = className;
     quickResultElement.style.display = "block";
-
     setTimeout(() => {
         quickResultElement.style.display = "none";
         quickResultElement.className = "";
@@ -519,10 +526,10 @@ if (playAgainButton) {
 }
 // Listeners para estado online/offline
 window.addEventListener('online', () => {
-    offlineMessageElement.hidden = true;
+    if (offlineMessageElement) offlineMessageElement.hidden = true;
 });
 window.addEventListener('offline', () => {
-    offlineMessageElement.hidden = false;
+    if (offlineMessageElement) offlineMessageElement.hidden = false;
     showFeedback(OFFLINE_MESSAGE, 'warning');
 });
 // Inicialização
