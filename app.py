@@ -461,7 +461,19 @@ def check_files():
 @app.route('/ping')
 def ping():
     """Endpoint para health check"""
-    return jsonify({"status": "ok"}), 200
+    try:
+        return jsonify({
+            "status": "ok",
+            "timestamp": datetime.now().isoformat(),
+            "server": "running",
+            "version": "1.0.0"
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Erro no health check: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": "Erro interno no servidor"
+        }), 500
 
 @app.route('/safe-redirect')
 def safe_redirect():

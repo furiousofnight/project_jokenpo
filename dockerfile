@@ -1,5 +1,5 @@
 # Usar uma imagem base do Python mais recente e segura
-FROM python:3.13.3-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 # Definir variáveis de ambiente
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -33,11 +33,9 @@ RUN apt-get update && apt-get install -y curl && \
 COPY --chown=appuser:appuser . .
 
 # Criar diretórios necessários e definir permissões corretas
-RUN mkdir -p /app/static/sounds /app/static/images /app/certs \
-    && chmod -R 755 /app \
-    && chmod -R 644 /app/static/* \
+RUN chmod -R 755 /app \
+    && chmod -R 644 /app/static/* 2>/dev/null || true \
     && find /app -type d -exec chmod 755 {} \; \
-    && chmod 600 /app/certs/* || true \
     && chown -R appuser:appuser /app
 
 # Mudar para o usuário não privilegiado
@@ -47,8 +45,8 @@ USER appuser
 EXPOSE ${PORT}
 
 # Configurar healthcheck mais tolerante
-HEALTHCHECK --interval=45s --timeout=45s --start-period=30s --retries=5 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:${PORT}/ping || exit 1
 
-# Comando para iniciar o aplicativo com Gunicorn com configurações de segurança
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--worker-class", "sync", "--timeout", "60", "--keep-alive", "5", "--log-level", "info", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+# Comando para iniciar o aplicativo com Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "60", "--keep-alive", "5", "--log-level", "info", "--access-logfile", "-", "--error-logfile", "-", "app:app"]

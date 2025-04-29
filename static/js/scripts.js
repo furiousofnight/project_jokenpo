@@ -474,13 +474,39 @@ async function checkAudioFiles() {
 
 async function checkApiHealth() {
     try {
-        const response = await fetch('/ping');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
+
+        const response = await fetch('/ping', {
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         const data = await response.json();
+        
         if (data.status !== 'ok') {
-            showFeedback('Serviço temporariamente indisponível', 'warning');
+            showFeedback('Serviço temporariamente indisponível: ' + (data.message || 'Status não ok'), 'warning');
+            return false;
         }
+        
+        // Verificar se o timestamp está muito desalinhado com o horário local
+        const serverTime = new Date(data.timestamp);
+        const localTime = new Date();
+        const timeDiff = Math.abs(serverTime - localTime);
+        
+        if (timeDiff > 300000) { // 5 minutos de diferença
+            showFeedback('Aviso: Relógio do servidor pode estar desalinhado', 'warning');
+        }
+        
+        return true;
     } catch (error) {
-        showFeedback('Não foi possível conectar ao servidor');
+        if (error.name === 'AbortError') {
+            showFeedback('Servidor está demorando para responder', 'warning');
+        } else {
+            showFeedback('Não foi possível conectar ao servidor: ' + (error.message || 'Erro desconhecido'));
+        }
+        return false;
     }
 }
 
@@ -603,8 +629,20 @@ window.addEventListener('offline', () => {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
-    await checkApiHealth();
-    initializeGame();
-    initBackgroundMusic();
-    checkAudioFiles();
+    showLoadingOverlay(true);
+    try {
+        const serverOk = await checkApiHealth();
+        if (!serverOk) {
+            showFeedback('O jogo pode não funcionar corretamente. Tente recarregar a página.', 'warning');
+        }
+        
+        await checkAudioFiles();
+        initializeGame();
+        initBackgroundMusic();
+    } catch (error) {
+        console.error('Erro na inicialização:', error);
+        showFeedback('Erro ao inicializar o jogo. Por favor, recarregue a página.');
+    } finally {
+        showLoadingOverlay(false);
+    }
 });
