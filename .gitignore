@@ -159,5 +159,67 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Ignorar a pasta de certificados
+# Arquivos sensíveis
+*.pem
+*.key
+*.crt
+
+# Ambiente virtual
+venv/
+env/
+.env
+
+# Arquivos de cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Logs
+*.log
+logs/
+jokenpo.log*
+
+# Arquivos de certificado SSL/TLS
+*.pem
+*.key
+*.crt
 certs/
+
+# Arquivos de configuração local
+.env.local
+.env.*.local
+instance/
+
+# Arquivos de IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Arquivos de build/distribuição
+build/
+dist/
+*.egg-info/
+
+# Arquivos temporários
+*.tmp
+*.temp
+.coverage
+htmlcov/
+
+# Arquivos específicos do Fly.io que podem conter informações sensíveis
+.fly/secrets.yml
+fly.env
+
+# Arquivos de cache do sistema
+.cache/
+.npm/
+.yarn/
+
+# Arquivos de banco de dados local
+*.db
+*.sqlite
+*.sqlite3
+

@@ -15,10 +15,12 @@ const totalEmpatesElement = document.getElementById('total-empates');
 const loadingOverlay = document.getElementById('loading-overlay');
 const offlineMessageElement = document.getElementById('offline-message');
 const feedbackMessage = document.getElementById('feedback-message');
+
 // ================== Música de Fundo ==================
 const backgroundMusic = document.getElementById('background-music');
 const toggleMusicBtn = document.getElementById('toggle-music');
 let isMusicPlaying = false;
+
 // ================== Container da Animação ==================
 let animationContainer = document.getElementById('jokenpo-animation');
 if (!animationContainer) {
@@ -26,6 +28,7 @@ if (!animationContainer) {
     animationContainer.id = 'jokenpo-animation';
     document.body.appendChild(animationContainer);
 }
+
 // ================== Constantes ==================
 const HISTORY_LIMIT = 10;
 const TENTATIVAS_INICIAIS = 10;
@@ -36,10 +39,12 @@ const DELAY_ANIMACAO_RESULTADO = 800;
 const DELAY_CHECK_FIM_JOGO = 500;
 const DELAY_MENSAGEM_RAPIDA = 3000;
 const OFFLINE_MESSAGE = "Você está offline. Algumas funcionalidades podem não estar disponíveis.";
+
 // Constantes para resultados
 const RESULTADO_JOGADOR_GANHOU = "O JOGADOR GANHOU!";
 const RESULTADO_COMPUTADOR_GANHOU = "O COMPUTADOR GANHOU!";
 const RESULTADO_EMPATE = "EMPATE!";
+
 // Mapeamentos e símbolos do jogo
 const ITENS_JOGO = ['Pedra', 'Papel', 'Tesoura'];
 const JOGADA_PARA_INDICE = {
@@ -48,24 +53,28 @@ const JOGADA_PARA_INDICE = {
     "tesoura": 2
 };
 const SIMBOLOS_JOGO = ["👊", "✋", "✌️"];
+
 // Estados do Jogo
 const GameState = {
     PLAYING: 'playing',
     WAITING: 'waiting',
     FINISHED: 'finished'
 };
+
 // ================== Variáveis de Estado ==================
 let ultimoJogador = null;
 let placar = { jogador: 0, computador: 0, empates: 0 };
 let tentativasRestantes = TENTATIVAS_INICIAIS;
 let isWaiting = false;
 let currentGameState = GameState.PLAYING;
+
 // Estatísticas localStorage
 let storageStats = {
     vitorias: parseInt(localStorage.getItem('vitorias')) || 0,
     derrotas: parseInt(localStorage.getItem('derrotas')) || 0,
     empates: parseInt(localStorage.getItem('empates')) || 0
 };
+
 // ================== Sons ==================
 const sounds = {
     click: new Audio('/static/sounds/click.mp3'),
@@ -76,7 +85,9 @@ const sounds = {
     finalLose: new Audio('/static/sounds/final_lose.mp3'),
     finalDraw: new Audio('/static/sounds/final_draw.mp3')
 };
+
 // ================== Segurança: Função para escapar HTML ==================
+// ... existing code ...
 function escapeHTML(str) {
     if (typeof str !== 'string') return str;
     const replacements = {
@@ -84,16 +95,18 @@ function escapeHTML(str) {
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
-        "'": '&#039;'
+        "'": '&#39;'
     };
     return str.replace(/[&<>"']/g, match => replacements[match]);
 }
+
 // ================== Funções de Utilidade ==================
 function showLoadingOverlay(show) {
     if (loadingOverlay) {
         loadingOverlay.hidden = !show;
     }
 }
+
 function showFeedback(message, type = 'error') {
     if (feedbackMessage) {
         feedbackMessage.textContent = message;
@@ -106,10 +119,12 @@ function showFeedback(message, type = 'error') {
         console.warn("Elemento de feedback não encontrado.");
     }
 }
+
 function updateGameState(newState) {
     currentGameState = newState;
     document.body.dataset.gameState = newState;
 }
+
 // ================== Funções de Música e Som ==================
 function initBackgroundMusic() {
     if (!backgroundMusic || !toggleMusicBtn) return;
@@ -131,6 +146,7 @@ function initBackgroundMusic() {
     }
     toggleMusicBtn.addEventListener('click', toggleBackgroundMusic);
 }
+
 function toggleBackgroundMusic() {
     if (!backgroundMusic || !toggleMusicBtn) return;
     const musicIcon = toggleMusicBtn.querySelector('.music-icon');
@@ -147,6 +163,7 @@ function toggleBackgroundMusic() {
     }
     isMusicPlaying = !isMusicPlaying;
 }
+
 function playGameSound(sound) {
     if (!sound || !backgroundMusic) return;
     const currentMusicVolume = backgroundMusic.volume;
@@ -161,6 +178,7 @@ function playGameSound(sound) {
         }
     }, DELAY_RESTAURAR_VOLUME);
 }
+
 // ================== Funções de Atualização do Estado do Jogo ==================
 function updateLocalStorage(statusFinal) {
     switch (statusFinal) {
@@ -179,6 +197,7 @@ function updateLocalStorage(statusFinal) {
     }
     displayTotalStats();
 }
+
 function displayTotalStats() {
     if (statsDisplayElement) {
         statsDisplayElement.innerHTML = `
@@ -189,6 +208,7 @@ function displayTotalStats() {
         `;
     }
 }
+
 function setLoadingState(isLoading) {
     isWaiting = isLoading;
     showLoadingOverlay(isLoading);
@@ -205,6 +225,7 @@ function setLoadingState(isLoading) {
         }
     }
 }
+
 function displayTemporaryError(message) {
     if (resultDisplay) {
         resultDisplay.innerHTML = `<span class="error">Erro: ${escapeHTML(message)}</span>`;
@@ -217,6 +238,7 @@ function displayTemporaryError(message) {
         }, 4000);
     }
 }
+
 function initializeGame() {
     placar = { jogador: 0, computador: 0, empates: 0 };
     tentativasRestantes = TENTATIVAS_INICIAIS;
@@ -240,6 +262,7 @@ function initializeGame() {
     });
     displayTotalStats();
 }
+
 // ================== Funções de Interface do Jogo ==================
 function updateResultDisplay(resultado, jogadaComputador) {
     const messagesByResult = {
@@ -272,6 +295,7 @@ function updateResultDisplay(resultado, jogadaComputador) {
     }
     showQuickResultMessage(resultado);
 }
+
 function addToHistory(resultado, jogadaJogador, jogadaComputador) {
     if (!historyList) return;
     const li = document.createElement('li');
@@ -301,6 +325,7 @@ function addToHistory(resultado, jogadaJogador, jogadaComputador) {
         historyList.removeChild(historyList.lastChild);
     }
 }
+
 function updateScore(resultado) {
     if (resultado === RESULTADO_JOGADOR_GANHOU) {
         placar.jogador++;
@@ -314,11 +339,13 @@ function updateScore(resultado) {
     if (computerScoreDisplay) computerScoreDisplay.textContent = placar.computador;
     if (attemptsDisplay) attemptsDisplay.textContent = tentativasRestantes;
 }
+
 function getRandomMessage(messages) {
     if (!messages || messages.length === 0) return "Fim de Jogo!";
     const index = Math.floor(Math.random() * messages.length);
     return messages.splice(index, 1)[0];
 }
+
 function checkForGameEnd() {
     if (tentativasRestantes <= 0) {
         let statusFinal = "empate";
@@ -382,6 +409,7 @@ function checkForGameEnd() {
         btnChoices.forEach(button => button.disabled = true);
     }
 }
+
 function showJokenpoAnimation(jogadorChoiceIndex, jogadaComputadorTexto, onAnimationEnd) {
     const jogadorSymbol = SIMBOLOS_JOGO[jogadorChoiceIndex];
     const computerIndex = JOGADA_PARA_INDICE[jogadaComputadorTexto.toLowerCase()];
@@ -426,6 +454,7 @@ function showJokenpoAnimation(jogadorChoiceIndex, jogadaComputadorTexto, onAnima
         }
     }, 1000);
 }
+
 async function checkAudioFiles() {
     try {
         const response = await fetch('/check_files');
@@ -437,6 +466,7 @@ async function checkAudioFiles() {
         console.error('Erro ao verificar arquivos de áudio:', error);
     }
 }
+
 async function checkApiHealth() {
     try {
         const response = await fetch('/ping');
@@ -448,6 +478,7 @@ async function checkApiHealth() {
         showFeedback('Não foi possível conectar ao servidor');
     }
 }
+
 async function sendChoiceToServer(jogadorChoiceIndex) {
     if (isWaiting || tentativasRestantes <= 0) return;
     setLoadingState(true);
@@ -488,6 +519,7 @@ async function sendChoiceToServer(jogadorChoiceIndex) {
         setLoadingState(false);
     }
 }
+
 function showQuickResultMessage(resultado) {
     if (!quickResultElement) return;
     let text = "";
@@ -510,6 +542,7 @@ function showQuickResultMessage(resultado) {
         quickResultElement.className = "";
     }, DELAY_MENSAGEM_RAPIDA);
 }
+
 // ================== Event Listeners e Inicialização ==================
 btnChoices.forEach(button => {
     button.addEventListener('click', () => {
@@ -521,9 +554,11 @@ btnChoices.forEach(button => {
         }
     });
 });
+
 if (playAgainButton) {
     playAgainButton.addEventListener('click', initializeGame);
 }
+
 // Listeners para estado online/offline
 window.addEventListener('online', () => {
     if (offlineMessageElement) offlineMessageElement.hidden = true;
@@ -532,6 +567,7 @@ window.addEventListener('offline', () => {
     if (offlineMessageElement) offlineMessageElement.hidden = false;
     showFeedback(OFFLINE_MESSAGE, 'warning');
 });
+
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
     await checkApiHealth();

@@ -20,6 +20,7 @@ body {
     margin: 0 auto;
     padding: 0 15px;
 }
+
 /* Cabeçalho */
 .main-header {
     text-align: center;
@@ -55,6 +56,7 @@ body {
         text-shadow: 0 4px 20px rgba(255, 0, 123, 0.7);
     }
 }
+
 /* Container Principal para o Jogo */
 .game-container {
     padding: 30px 15px;
@@ -65,6 +67,7 @@ body {
     background: linear-gradient(135deg, rgba(30, 30, 60, 0.85), rgba(45, 45, 90, 0.95));
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
 }
+
 /* Instruções */
 .instructions p {
     font-size: 1.4rem;
@@ -77,6 +80,7 @@ body {
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
 /* Seção de Placar */
 .game-score {
     margin: 20px auto;
@@ -105,6 +109,7 @@ body {
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
 /* Botões de Escolha do Jogo */
 .choices {
     display: flex;
@@ -147,6 +152,7 @@ body {
     transform: scale(0.9);
     box-shadow: 0 3px 10px rgba(50, 50, 92, 0.6);
 }
+
 /* Resultados & Mensagens Finais */
 .result-display {
     margin: 24px auto 0 auto;
@@ -189,6 +195,7 @@ body {
     padding: 0;
     line-height: 1.3;
 }
+
 /* Mensagem Final de Jogo */
 .final-message {
     padding: 24px 18px 18px 18px;
@@ -261,23 +268,7 @@ body {
     background: linear-gradient(135deg, #ff5b87, #ffcc40);
     box-shadow: 0 6px 20px rgba(255, 28, 133, 0.8);
 }
-@media (max-width: 480px) {
-    .final-message {
-        max-width: 96vw;
-        padding: 14px 4vw 10px 4vw;
-        font-size: 1rem;
-    }
-    .final-message h2#final-result-text {
-        font-size: 1.08rem;
-    }
-    .final-message p {
-        font-size: 0.97rem;
-    }
-    .final-message button {
-        font-size: 1rem;
-        padding: 10px 18px;
-    }
-}
+
 /* Histórico */
 .history ul {
     margin-top: 20px;
@@ -358,23 +349,7 @@ body {
     -webkit-text-fill-color: transparent;
     text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.13);
 }
-@media (max-width: 480px) {
-    .history ul {
-        padding: 10px 2vw;
-        max-height: 220px;
-    }
-    .history li {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-        padding: 10px 8px;
-        font-size: 0.97rem;
-    }
-    .history li span {
-        font-size: 0.97rem;
-        margin-right: 0;
-    }
-}
+
 /* Estatísticas */
 #stats-display {
     margin: 28px auto 20px;
@@ -456,21 +431,7 @@ body {
     background: rgba(255, 0, 123, 0.10);
     box-shadow: 0 2px 8px rgba(255, 0, 123, 0.10);
 }
-@media (max-width: 480px) {
-    #stats-display {
-        width: 98vw;
-        padding: 14px 3vw 8px 3vw;
-        font-size: 1rem;
-    }
-    #stats-display h3,
-    #stats-display p.title {
-        font-size: 1.05rem;
-    }
-    #stats-display .stats-item {
-        font-size: 0.97rem;
-        padding: 6px 8px;
-    }
-}
+
 /* Rodapé */
 .site-footer {
     text-align: center;
@@ -491,14 +452,7 @@ body {
 .site-footer a:hover {
     color: #ff007b;
 }
-/* Scroll personalizado para o histórico */
-.history ul::-webkit-scrollbar {
-    width: 8px;
-}
-.history ul::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #ff7200, #ff46b2);
-    border-radius: 10px;
-}
+
 /* Animações */
 @keyframes popUp {
     0% {
@@ -520,6 +474,7 @@ body {
         transform: scale(1);
     }
 }
+
 /* Estilos para a animação de JoKenPo */
 #jokenpo-animation {
     position: fixed;
@@ -555,7 +510,6 @@ body {
     justify-content: center;
     align-items: center;
     gap: 20px;
-    margin-bottom: 30px;
 }
 .jokenpo-symbol {
     font-size: 80px;
@@ -618,7 +572,6 @@ body {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-weight: bold;
 }
 .countdown {
     font-size: 100px;
@@ -650,6 +603,7 @@ body {
         transform: rotate(5deg);
     }
 }
+
 /* Controle de música */
 .music-control {
     position: fixed;
@@ -679,6 +633,7 @@ body {
 .music-btn.muted .music-icon {
     opacity: 0.5;
 }
+
 /* Responsividade */
 @media (max-width: 768px) {
     .game-container {
@@ -828,6 +783,7 @@ body {
         transform: none !important;
     }
 }
+
 /* Mensagem rápida animada */
 #quick-result {
     position: fixed;
