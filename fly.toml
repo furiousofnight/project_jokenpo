@@ -8,7 +8,6 @@ auto_rollback = true
 
 [deploy]
 strategy = "rolling"
-release_command = "python -c 'import time; time.sleep(10)'"
 
 [env]
 PORT = "8080"
@@ -31,9 +30,9 @@ min_machines_running = 1
   handlers = ["tls", "http"]
 
   [[services.http_checks]]
-  interval = "30s"
-  timeout = "10s"
-  grace_period = "30s"
+  interval = "45s"
+  timeout = "15s"
+  grace_period = "60s"
   method = "get"
   path = "/ping"
   protocol = "http"
@@ -53,13 +52,6 @@ cpus = 1
   auto_start_machines = true
   min_machines_running = 0
   processes = ["app"]
-
-[[http_service.checks]]
-  grace_period = "30s"
-  interval = "45s"
-  method = "GET"
-  timeout = "45s"
-  path = "/ping"
 
 [[statics]]
   guest_path = "/app/static"

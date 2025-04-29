@@ -1,5 +1,5 @@
 # Usar uma imagem base do Python mais recente e segura
-FROM python:3.13-slim-bookworm
+FROM python:3.13.3-slim-bookworm
 
 # Definir variáveis de ambiente
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -32,11 +32,13 @@ RUN apt-get update && apt-get install -y curl && \
 # Copiar o restante do código do aplicativo
 COPY --chown=appuser:appuser . .
 
-# Definir permissões corretas
-RUN chmod -R 755 /app \
+# Criar diretórios necessários e definir permissões corretas
+RUN mkdir -p /app/static/sounds /app/static/images /app/certs \
+    && chmod -R 755 /app \
     && chmod -R 644 /app/static/* \
     && find /app -type d -exec chmod 755 {} \; \
-    && chmod 600 /app/certs/* || true
+    && chmod 600 /app/certs/* || true \
+    && chown -R appuser:appuser /app
 
 # Mudar para o usuário não privilegiado
 USER appuser
