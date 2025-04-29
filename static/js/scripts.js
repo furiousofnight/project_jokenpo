@@ -266,9 +266,9 @@ function initializeGame() {
 // ================== Funções de Interface do Jogo ==================
 function updateResultDisplay(resultado, jogadaComputador) {
     const messagesByResult = {
-        [RESULTADO_JOGADOR_GANHOU]: "Você foi incrível! Vitória brilhante! 🌟",
-        [RESULTADO_COMPUTADOR_GANHOU]: "Oh não! O computador venceu essa. 🤖",
-        [RESULTADO_EMPATE]: "Foi um empate! Equilíbrio total! 😯"
+        "O JOGADOR GANHOU!": "Você foi incrível! Vitória brilhante! 🌟",
+        "O COMPUTADOR GANHOU!": "Oh não! O computador venceu essa. 🤖",
+        "EMPATE!": "Foi um empate! Equilíbrio total! 😯"
     };
     const jogadaComputadorDisplay = escapeHTML(
         jogadaComputador.charAt(0).toUpperCase() + jogadaComputador.slice(1)
@@ -283,26 +283,40 @@ function updateResultDisplay(resultado, jogadaComputador) {
         resultDisplay.classList.remove('loading', 'error');
     }
     switch (resultado) {
-        case RESULTADO_JOGADOR_GANHOU:
+        case "O JOGADOR GANHOU!":
             playGameSound(sounds.win);
             break;
-        case RESULTADO_COMPUTADOR_GANHOU:
+        case "O COMPUTADOR GANHOU!":
             playGameSound(sounds.lose);
             break;
-        case RESULTADO_EMPATE:
+        case "EMPATE!":
             playGameSound(sounds.draw);
             break;
     }
     showQuickResultMessage(resultado);
 }
 
+function updateScore(resultado) {
+    if (resultado === "O JOGADOR GANHOU!") {
+        placar.jogador++;
+    } else if (resultado === "O COMPUTADOR GANHOU!") {
+        placar.computador++;
+    } else if (resultado === "EMPATE!") {
+        placar.empates++;
+    }
+    tentativasRestantes = Math.max(tentativasRestantes - 1, 0);
+    if (playerScoreDisplay) playerScoreDisplay.textContent = placar.jogador;
+    if (computerScoreDisplay) computerScoreDisplay.textContent = placar.computador;
+    if (attemptsDisplay) attemptsDisplay.textContent = tentativasRestantes;
+}
+
 function addToHistory(resultado, jogadaJogador, jogadaComputador) {
     if (!historyList) return;
     const li = document.createElement('li');
     let resultadoClasse = '';
-    if (resultado === RESULTADO_JOGADOR_GANHOU) {
+    if (resultado === "O JOGADOR GANHOU!") {
         resultadoClasse = 'history-win';
-    } else if (resultado === RESULTADO_COMPUTADOR_GANHOU) {
+    } else if (resultado === "O COMPUTADOR GANHOU!") {
         resultadoClasse = 'history-lose';
     } else {
         resultadoClasse = 'history-draw';
@@ -324,20 +338,6 @@ function addToHistory(resultado, jogadaJogador, jogadaComputador) {
     while (historyList.children.length > HISTORY_LIMIT) {
         historyList.removeChild(historyList.lastChild);
     }
-}
-
-function updateScore(resultado) {
-    if (resultado === RESULTADO_JOGADOR_GANHOU) {
-        placar.jogador++;
-    } else if (resultado === RESULTADO_COMPUTADOR_GANHOU) {
-        placar.computador++;
-    } else if (resultado === RESULTADO_EMPATE) {
-        placar.empates++;
-    }
-    tentativasRestantes = Math.max(tentativasRestantes - 1, 0);
-    if (playerScoreDisplay) playerScoreDisplay.textContent = placar.jogador;
-    if (computerScoreDisplay) computerScoreDisplay.textContent = placar.computador;
-    if (attemptsDisplay) attemptsDisplay.textContent = tentativasRestantes;
 }
 
 function getRandomMessage(messages) {
@@ -414,6 +414,7 @@ function showJokenpoAnimation(jogadorChoiceIndex, jogadaComputadorTexto, onAnima
     const jogadorSymbol = SIMBOLOS_JOGO[jogadorChoiceIndex];
     const computerIndex = JOGADA_PARA_INDICE[jogadaComputadorTexto.toLowerCase()];
     const computerFinalSymbol = SIMBOLOS_JOGO[computerIndex];
+    
     animationContainer.innerHTML = `
         <div class="symbol-container">
             <div class="player-choice">
@@ -428,17 +429,21 @@ function showJokenpoAnimation(jogadorChoiceIndex, jogadaComputadorTexto, onAnima
         </div>
         <div class="countdown">3</div>
     `;
+    
     animationContainer.classList.add('active', 'animating');
     const computerSymbolElement = animationContainer.querySelector('.computer-symbol');
     const countdownElement = animationContainer.querySelector('.countdown');
     const playerSymbolElement = animationContainer.querySelector('.player-symbol');
+    
     playerSymbolElement.classList.add('highlight');
     let secondsLeft = 3;
     let symbolShuffleIndex = 0;
+    
     const shuffleInterval = setInterval(() => {
         symbolShuffleIndex = (symbolShuffleIndex + 1) % SIMBOLOS_JOGO.length;
         computerSymbolElement.textContent = SIMBOLOS_JOGO[symbolShuffleIndex];
     }, 150);
+    
     const countdownInterval = setInterval(() => {
         secondsLeft--;
         countdownElement.textContent = secondsLeft > 0 ? secondsLeft : "Já!";
@@ -479,15 +484,23 @@ async function checkApiHealth() {
     }
 }
 
-async function sendChoiceToServer(jogadorChoiceIndex) {
+async function sendChoiceToServer(jogadorChoiceIndex, retryCount = 0) {
     if (isWaiting || tentativasRestantes <= 0) return;
     setLoadingState(true);
     playGameSound(sounds.click);
+
+    const MAX_RETRIES = 3;
+    const TIMEOUT = 10000; // 10 segundos
+
     try {
         if (!navigator.onLine) {
             throw new Error(OFFLINE_MESSAGE);
         }
-        const response = await fetch('/play', {
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
+        const response = await fetch('/jogar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -496,14 +509,20 @@ async function sendChoiceToServer(jogadorChoiceIndex) {
             body: JSON.stringify({
                 jogador: jogadorChoiceIndex,
                 ultimo_jogador: ultimoJogador
-            })
+            }),
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
         }
+
         const data = await response.json();
         ultimoJogador = jogadorChoiceIndex;
+
         showJokenpoAnimation(jogadorChoiceIndex, data.jogada_computador, () => {
             updateResultDisplay(data.resultado, data.jogada_computador);
             addToHistory(data.resultado, ITENS_JOGO[jogadorChoiceIndex], data.jogada_computador);
@@ -515,8 +534,20 @@ async function sendChoiceToServer(jogadorChoiceIndex) {
         });
     } catch (error) {
         console.error("Erro ao processar jogada:", error);
-        showFeedback(error.message);
-        setLoadingState(false);
+        
+        if (error.name === 'AbortError') {
+            showFeedback('A conexão está muito lenta. Tentando novamente...');
+        } else {
+            showFeedback(error.message);
+        }
+
+        if (retryCount < MAX_RETRIES && (error.name === 'AbortError' || !navigator.onLine)) {
+            setTimeout(() => {
+                sendChoiceToServer(jogadorChoiceIndex, retryCount + 1);
+            }, 1000 * (retryCount + 1)); // Backoff exponencial
+        } else {
+            setLoadingState(false);
+        }
     }
 }
 
@@ -524,16 +555,18 @@ function showQuickResultMessage(resultado) {
     if (!quickResultElement) return;
     let text = "";
     let className = "";
-    if (resultado === RESULTADO_JOGADOR_GANHOU) {
+    
+    if (resultado === "O JOGADOR GANHOU!") {
         text = "WIN";
         className = "win";
-    } else if (resultado === RESULTADO_COMPUTADOR_GANHOU) {
+    } else if (resultado === "O COMPUTADOR GANHOU!") {
         text = "LOSE";
         className = "lose";
     } else {
         text = "DRAW";
         className = "draw";
     }
+    
     quickResultElement.textContent = text;
     quickResultElement.className = className;
     quickResultElement.style.display = "block";

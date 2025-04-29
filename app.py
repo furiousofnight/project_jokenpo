@@ -2,11 +2,13 @@ import logging
 import os
 import random
 import re
+import time
 from logging.handlers import RotatingFileHandler
 from urllib.parse import urlparse, urljoin
 from dotenv import load_dotenv
+from datetime import datetime
 
-from flask import Flask, render_template, request, jsonify, send_from_directory, abort, redirect
+from flask import Flask, render_template, request, jsonify, send_from_directory, abort, redirect, make_response
 from flask_caching import Cache  # type: ignore
 from flask_cors import CORS
 from flask_limiter import Limiter  # type: ignore
@@ -51,7 +53,14 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or generate_secret_key()
 
 # Configuração de CORS
-CORS(app, resources={r"/play": {"origins": ["http://localhost:3000"]}})  # Ajuste para produção
+CORS(app, resources={
+    r"/*": {
+        "origins": ["*"],  # Permitir todas as origens temporariamente para debug
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "X-Requested-With", "Authorization"],
+        "supports_credentials": True
+    }
+})
 
 # Configuração do Cache
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
@@ -68,7 +77,7 @@ limiter = Limiter(
 # Métricas com Prometheus
 # =============================
 jogadas_counter = Counter('jokenpo_jogadas_total', 'Total de jogadas realizadas')
-vitorias_jogador = Counter('jokenpo_vitorias_jogador', 'Vitórias do jogador')
+vitorias_jogador = Counter('jokenpo_vitorias_jogador', 'Total de vitórias do jogador')
 
 # =============================
 # Configurações de desenvolvimento
@@ -103,6 +112,19 @@ JOGADA_QUE_VENCE = {
     2: 0   # Tesoura é vencida por Pedra
 }
 
+# Constantes de validação e controle
+INTERVALO_MIN_JOGADAS = 1.0  # segundos
+MAX_HISTORICO = 100
+MAX_TENTATIVAS_INVALIDAS = 5
+TEMPO_BLOQUEIO = 300  # 5 minutos em segundos
+LIMITE_JOGADAS_HORA = 100
+
+# Dicionários de controle
+ultimo_acesso = {}
+historico_jogadas = []
+tentativas_invalidas = {}
+bloqueios = {}
+
 # Criação de diretórios necessários para arquivos estáticos e de som
 os.makedirs(app.static_folder, exist_ok=True)
 os.makedirs(os.path.join(app.static_folder, 'sounds'), exist_ok=True)
@@ -117,56 +139,40 @@ app.config.update(
     PERMANENT_SESSION_LIFETIME=1800,  # 30 minutos
 )
 
-# Configuração do CSP mais restritiva para produção
-if not app.debug:
-    csp = {
-        'default-src': ["'self'"],
-        'script-src': ["'self'", "'unsafe-inline'"],
-        'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        'font-src': ["'self'", "https://fonts.gstatic.com"],
-        'img-src': ["'self'", "data:"],
-        'media-src': ["'self'"],
-        'object-src': ["'none'"],
-        'connect-src': ["'self'"],
-        'frame-ancestors': ["'none'"],
-        'form-action': ["'self'"],
-        'base-uri': ["'self'"],
-        'upgrade-insecure-requests': []
-    }
-else:
-    csp = {
-        'default-src': ["'self'"],
-        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        'font-src': ["'self'", "https://fonts.gstatic.com"],
-        'img-src': ["'self'", "data:"],
-        'media-src': ["'self'"],
-        'object-src': ["'none'"],
-        'connect-src': ["'self'"]
-    }
+# Configurações de CSP mais permissivas para desenvolvimento
+csp = {
+    'default-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "*"],
+    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "*"],
+    'style-src': ["'self'", "'unsafe-inline'", "*"],
+    'font-src': ["'self'", "*"],
+    'img-src': ["'self'", "data:", "*"],
+    'media-src': ["'self'", "*"],
+    'connect-src': ["'self'", "*"],
+    'form-action': ["'self'", "*"]
+}
 
-# Configuração do Talisman com opções de segurança aprimoradas
+# Configuração do Talisman com opções ajustadas
 Talisman(app,
     force_https=True,
     strict_transport_security=True,
     session_cookie_secure=True,
+    content_security_policy=csp,
+    content_security_policy_nonce_in=['script-src'],
     feature_policy={
         'geolocation': "'none'",
         'midi': "'none'",
         'notifications': "'none'",
         'push': "'none'",
-        'sync-xhr': "'none'",
+        'sync-xhr': "'self'",
         'microphone': "'none'",
         'camera': "'none'",
         'magnetometer': "'none'",
         'gyroscope': "'none'",
         'speaker': "'self'",
         'vibrate': "'none'",
-        'fullscreen': "'none'",
+        'fullscreen': "'self'",
         'payment': "'none'"
-    },
-    content_security_policy=csp,
-    content_security_policy_nonce_in=['script-src']
+    }
 )
 
 # Rate limiting mais restritivo para produção
@@ -176,82 +182,127 @@ if not app.debug:
 # =============================
 # Funções de Lógica do Jogo
 # =============================
-historico_jogadas = []  # Lista para armazenar as jogadas do jogador
+def calcular_jogada_computador(ultimo_jogador):
+    """Calcula a jogada do computador utilizando uma estratégia adaptativa."""
+    app.logger.info(f"Calculando jogada do computador. Última jogada do jogador: {ultimo_jogador}")
+    
+    # Se não houver histórico ou última jogada inválida, joga aleatório
+    if ultimo_jogador not in [0, 1, 2] or len(historico_jogadas) < 3:
+        jogada = random.choice([0, 1, 2])
+        app.logger.info(f"Jogada aleatória inicial: {ITENS[jogada]}")
+        return jogada
 
-def jogada_computador(ultimo_jogador):
-    """Calcula a jogada do computador utilizando lógica imprevisível para dificultar a vitória."""
-    if ultimo_jogador not in [0, 1, 2]:
-        app.logger.info("Primeira rodada ou 'ultimo_jogador' inválido. Escolha aleatória.")
-        return random.choice([0, 1, 2])
+    # Análise de padrões do jogador
+    padrao_jogador = {}
+    for i in range(len(historico_jogadas) - 1):
+        atual = historico_jogadas[i]
+        proxima = historico_jogadas[i + 1]
+        if atual not in padrao_jogador:
+            padrao_jogador[atual] = {0: 0, 1: 0, 2: 0}
+        padrao_jogador[atual][proxima] += 1
 
-    # Contar as jogadas do jogador
-    contagem_jogadas = [0, 0, 0]  # [pedra, papel, tesoura]
-    for jogada in historico_jogadas:
-        contagem_jogadas[jogada] += 1
+    # Estratégia principal
+    estrategia = random.random()
+    
+    if estrategia < 0.4:  # 40% chance de contra-atacar padrão
+        if ultimo_jogador in padrao_jogador:
+            provavel_proxima = max(padrao_jogador[ultimo_jogador].items(), key=lambda x: x[1])[0]
+            jogada = JOGADA_QUE_VENCE[provavel_proxima]
+            app.logger.info(f"Contra-ataque baseado em padrão: {ITENS[jogada]}")
+            return jogada
+            
+    elif estrategia < 0.7:  # 30% chance de jogada que vence a última
+        jogada = JOGADA_QUE_VENCE[ultimo_jogador]
+        app.logger.info(f"Jogada para vencer última: {ITENS[jogada]}")
+        return jogada
+        
+    # 30% chance de jogada aleatória
+    jogada = random.choice([0, 1, 2])
+    app.logger.info(f"Jogada aleatória: {ITENS[jogada]}")
+    return jogada
 
-    # Determinar a jogada mais frequente do jogador
-    jogada_frequente = contagem_jogadas.index(max(contagem_jogadas))
-
-    # O computador joga a jogada que vence a jogada mais frequente do jogador
-    jogada_vencedora = JOGADA_QUE_VENCE[jogada_frequente]
-
-    # Introduzir aleatoriedade
-    estrategia = random.uniform(0, 1)
-
-    if estrategia < 0.75:
-        # 75% do tempo, o computador tenta vencer a jogada mais frequente do jogador
-        app.logger.info(
-            f"Estratégia: Vencer a jogada frequente do jogador. Computador joga: {ITENS[jogada_vencedora]}"
-        )
-        return jogada_vencedora
-    elif estrategia < 0.90:
-        # 15% do tempo, o computador joga aleatoriamente
-        jogada_aleatoria = random.choice([0, 1, 2])
-        app.logger.info(f"Estratégia: Jogada aleatória. Computador joga: {ITENS[jogada_aleatoria]}")
-        return jogada_aleatoria
-    else:
-        # 10% do tempo, o computador força um empate
-        app.logger.info(f"Estratégia: Forçar empate. Computador joga: {ITENS[ultimo_jogador]}")
-        return ultimo_jogador
+def determinar_vencedor(jogada_jogador, jogada_computador):
+    """
+    Determina o vencedor do jogo baseado nas jogadas.
+    1 = Pedra
+    2 = Papel 
+    3 = Tesoura
+    """
+    if jogada_jogador == jogada_computador:
+        return "Empate"
+    
+    if (jogada_jogador == 1 and jogada_computador == 3) or \
+       (jogada_jogador == 2 and jogada_computador == 1) or \
+       (jogada_jogador == 3 and jogada_computador == 2):
+        return "Vitória do jogador"
+    
+    return "Vitória do computador"
 
 def determinar_resultado(jogador, computador):
     """Determina o resultado do jogo com base nas regras definidas."""
     if jogador == computador:
         return "EMPATE!"
-    elif REGRAS_VITORIA[computador] == jogador:
-        return "O COMPUTADOR GANHOU!"
-    else:
+    elif REGRAS_VITORIA[jogador] == computador:
         vitorias_jogador.inc()
         return "O JOGADOR GANHOU!"
+    else:
+        return "O COMPUTADOR GANHOU!"
 
-def validar_jogada(dados):
-    """Valida e processa os dados da requisição para determinar a jogada do jogador."""
-    if not dados or not isinstance(dados, dict):
-        raise JogadaInvalidaError("Formato de requisição inválido. Esperado um JSON.")
+def validar_jogada(jogada, ip_jogador):
+    """
+    Valida a jogada do jogador e controla limites de acesso.
+    
+    Args:
+        jogada: A jogada do jogador (deve ser um inteiro entre 0 e 2)
+        ip_jogador: O IP do jogador para controle de acesso
+        
+    Returns:
+        tuple: (bool, str) indicando se a jogada é válida e mensagem de erro se houver
+    """
+    agora = time.time()
+    
+    # Verifica se o IP está bloqueado
+    if ip_jogador in bloqueios and agora < bloqueios[ip_jogador]:
+        tempo_restante = int(bloqueios[ip_jogador] - agora)
+        return False, f"Acesso bloqueado por {tempo_restante} segundos devido a múltiplas tentativas inválidas"
+    
+    # Verifica o intervalo entre jogadas
+    if ip_jogador in ultimo_acesso:
+        tempo_desde_ultima = agora - ultimo_acesso[ip_jogador]
+        if tempo_desde_ultima < INTERVALO_MIN_JOGADAS:
+            return False, f"Aguarde {INTERVALO_MIN_JOGADAS - tempo_desde_ultima:.1f} segundos antes de jogar novamente"
+    
+    # Valida o tipo e valor da jogada
+    if not isinstance(jogada, (int, float)):
+        _incrementar_tentativas_invalidas(ip_jogador)
+        return False, "A jogada deve ser um número"
+    
+    jogada = int(jogada)
+    if jogada not in [0, 1, 2]:
+        _incrementar_tentativas_invalidas(ip_jogador)
+        return False, "Jogada inválida. Use 0 para Pedra, 1 para Papel ou 2 para Tesoura"
+    
+    # Atualiza o último acesso
+    ultimo_acesso[ip_jogador] = agora
+    
+    # Limpa tentativas inválidas se a jogada for válida
+    if ip_jogador in tentativas_invalidas:
+        del tentativas_invalidas[ip_jogador]
+    
+    return True, ""
 
-    jogador_str = dados.get('jogador')
-    if jogador_str is None:
-        raise JogadaInvalidaError("Dados inválidos: o campo 'jogador' é obrigatório.")
-    try:
-        jogador = int(jogador_str)
-    except (ValueError, TypeError):
-        raise JogadaInvalidaError("Tipo inválido para 'jogador'. Deve ser 0, 1 ou 2.")
-    if jogador not in [0, 1, 2]:
-        raise JogadaInvalidaError("Valor inválido para 'jogador'. Escolha entre 0, 1 ou 2.")
-
-    ultimo_jogador = None
-    ultimo_jogador_str = dados.get('ultimo_jogador')
-    if ultimo_jogador_str is not None:
-        try:
-            ultimo_jogador_val = int(ultimo_jogador_str)
-            if ultimo_jogador_val in [0, 1, 2]:
-                ultimo_jogador = ultimo_jogador_val
-            else:
-                app.logger.warning(f"Valor inválido para 'ultimo_jogador' ({ultimo_jogador_str}). Ignorado.")
-        except (ValueError, TypeError):
-            app.logger.warning(f"Tipo inválido para 'ultimo_jogador' ({ultimo_jogador_str}). Ignorado.")
-
-    return jogador, ultimo_jogador
+def _incrementar_tentativas_invalidas(ip_jogador):
+    """
+    Incrementa o contador de tentativas inválidas e bloqueia o IP se necessário.
+    
+    Args:
+        ip_jogador: O IP do jogador
+    """
+    tentativas_invalidas[ip_jogador] = tentativas_invalidas.get(ip_jogador, 0) + 1
+    
+    if tentativas_invalidas[ip_jogador] >= MAX_TENTATIVAS_INVALIDAS:
+        bloqueios[ip_jogador] = time.time() + TEMPO_BLOQUEIO
+        del tentativas_invalidas[ip_jogador]
 
 # =============================
 # Segurança de URL
@@ -311,49 +362,55 @@ def sanitize_input(data):
         return [sanitize_input(x) for x in data]
     return data
 
-@app.route('/play', methods=['POST'])
-@limiter.limit("30/minute")
-def play():
-    global historico_jogadas  # Declare the variable as global to modify it
+@app.route('/jogar', methods=['POST'])
+def jogar():
+    inicio = time.time()
+    ip_cliente = request.remote_addr
+    app.logger.info(f"Nova jogada recebida do IP: {ip_cliente}")
+
     try:
-        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
-        dados = sanitize_input(request.get_json(force=True))
+        dados = request.get_json()
+        if not dados:
+            app.logger.warning(f"Dados inválidos recebidos do IP {ip_cliente}")
+            return jsonify({'error': 'Dados inválidos'}), 400
+
+        if 'jogador' not in dados:
+            app.logger.warning(f"Campo 'jogador' ausente na requisição do IP {ip_cliente}")
+            return jsonify({'error': 'Campo jogador é obrigatório'}), 400
+
+        jogada_jogador = dados['jogador']
+        ultimo_jogador = dados.get('ultimo_jogador')
+
+        # Validar a jogada
+        valido, mensagem_erro = validar_jogada(jogada_jogador, ip_cliente)
+        if not valido:
+            return jsonify({'error': mensagem_erro}), 400
+
+        # Calcular jogada do computador usando a função calcular_jogada_computador
+        jogada_comp = calcular_jogada_computador(ultimo_jogador)
+        app.logger.info(f"Computador escolheu: {ITENS[jogada_comp]}")
+
+        # Determinar resultado
+        resultado = determinar_resultado(jogada_jogador, jogada_comp)
         
-        # Validação adicional dos dados
-        if not isinstance(dados, dict):
-            raise JogadaInvalidaError("Formato de dados inválido")
-            
-        # Validação do IP
-        if not re.match(r'^[\d\.]+$', ip.split(',')[0].strip()):
-            app.logger.warning(f"Tentativa de acesso com IP suspeito: {ip}")
-            return jsonify({"error": "Acesso negado"}), 403
-
-        jogador, ultimo_jogador = validar_jogada(dados)
-
-        # Adiciona a jogada do jogador ao histórico
-        historico_jogadas.append(jogador)
-
-        computador = jogada_computador(ultimo_jogador)
-        resultado = determinar_resultado(jogador, computador)
         jogadas_counter.inc()
-        # Log detalhado da jogada
-        app.logger.info(
-            f"[JOGADA] IP: {ip} | Jogador: {jogador} ({ITENS[jogador]}) | "
-            f"Computador: {computador} ({ITENS[computador]}) | Resultado: {resultado.upper()} | "
-            f"Dados recebidos: {dados}"
-        )
+
+        # Atualizar histórico
+        historico_jogadas.append(jogada_jogador)
+        if len(historico_jogadas) > MAX_HISTORICO:
+            historico_jogadas.pop(0)
+
+        tempo_processamento = time.time() - inicio
+        app.logger.info(f"Jogada processada em {tempo_processamento:.3f}s - Resultado: {resultado}")
+
         return jsonify({
-            "jogada_computador": ITENS[computador],
-            "resultado": resultado
-        }), 200
-    except JogadaInvalidaError as e:
-        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
-        app.logger.warning(f"[ERRO JOGADA] IP: {ip} | Erro: {e}")
-        return jsonify({"error": str(e)}), 400
+            'resultado': resultado,
+            'jogada_computador': ITENS[jogada_comp]
+        })
+
     except Exception as e:
-        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
-        app.logger.exception(f"[ERRO] IP: {ip} | Erro: {str(e)}")
-        return jsonify({"error": "Erro interno no servidor"}), 500
+        app.logger.error(f"Erro ao processar jogada do IP {ip_cliente}: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/static/sounds/<path:filename>')
 def serve_sounds(filename):
@@ -401,15 +458,10 @@ def check_files():
         "files": status
     })
 
-@app.route('/ping', methods=['GET'])
+@app.route('/ping')
 def ping():
-    """Endpoint de diagnóstico."""
-    app.logger.info(f"Ping recebido de {request.remote_addr} - aplicação funcionando.")
-    return jsonify({
-        "status": "ok",
-        "message": "Aplicação JoKenPô está rodando!",
-        "timestamp": os.environ.get("FLY_ALLOC_ID", "local-dev")
-    }), 200
+    """Endpoint para health check"""
+    return jsonify({"status": "ok"}), 200
 
 @app.route('/safe-redirect')
 def safe_redirect():
