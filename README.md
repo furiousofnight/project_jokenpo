@@ -7,7 +7,7 @@
 
 Um jogo clássico de Pedra, Papel e Tesoura desenvolvido com Python/Flask e implantado na plataforma Fly.io. Apresenta uma interface moderna, efeitos sonoros e uma IA desafiadora que aprende com as jogadas do usuário.
 
-## 📑 Índice
+🎯LINK PARA TESTE 🎯 https://furious-jokenpo.fly.dev/
 
 - [Características](#-características)
 - [Demo](#-demo)
