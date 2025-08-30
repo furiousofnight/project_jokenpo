@@ -221,7 +221,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 **FuriousOfNight**
 - 🎥 TikTok: [@furiousofnightgames](https://www.tiktok.com/@furiousofnightgames)
-- 🌟 GitHub: [@seu-usuario](https://github.com/furiousofnight)
+- 🌟 GitHub: [@Furiousofnight](https://github.com/furiousofnight)
 
 ## 🙏 Agradecimentos
 
