@@ -17,6 +17,7 @@ from prometheus_client import Counter  # type: ignore
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_talisman import Talisman  # Importando Flask-Talisman
 
+
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
 
